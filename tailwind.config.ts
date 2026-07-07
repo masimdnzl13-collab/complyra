@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import { brandColors } from "./src/config/site";
 
 const config: Config = {
   content: [
@@ -11,6 +12,15 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        navy: brandColors.navy,
+        accent: brandColors.accent,
+        surface: brandColors.background.surface,
+        success: brandColors.success.DEFAULT,
+        warning: brandColors.warning.DEFAULT,
+        danger: brandColors.danger.DEFAULT,
+      },
+      fontFamily: {
+        sans: ["var(--font-inter)"],
       },
     },
   },

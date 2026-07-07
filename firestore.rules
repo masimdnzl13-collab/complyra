@@ -1,0 +1,85 @@
+rules_version = '2';
+
+// Mirrors src/lib/firestore/schema.ts — keep collection names and the
+// owner/member/platform_admin role model in sync with that module.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function callerDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function callerRole() {
+      return callerDoc().role;
+    }
+
+    function callerOrgId() {
+      return callerDoc().organizationId;
+    }
+
+    function isPlatformAdmin() {
+      return isSignedIn() && callerRole() == 'platform_admin';
+    }
+
+    function isMemberOfOrg(orgId) {
+      return isSignedIn() && callerOrgId() == orgId;
+    }
+
+    function isOwnerOfOrg(orgId) {
+      return isMemberOfOrg(orgId) && callerRole() == 'owner';
+    }
+
+    // User docs are created and updated server-side (Admin SDK) during
+    // onboarding, so the Admin SDK bypasses these rules entirely; the
+    // client can only read its own doc.
+    match /users/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isPlatformAdmin());
+      allow write: if false;
+    }
+
+    match /organizations/{orgId} {
+      allow read: if isMemberOfOrg(orgId) || isPlatformAdmin();
+
+      // Owners may edit organization profile fields, but never the
+      // subscription or usage fields — those are Admin-SDK-only so a
+      // client can never grant itself a plan or reset its own usage.
+      allow update: if (isOwnerOfOrg(orgId) &&
+                          request.resource.data.subscription == resource.data.subscription &&
+                          request.resource.data.usage == resource.data.usage) ||
+                        isPlatformAdmin();
+      allow create, delete: if isPlatformAdmin();
+
+      match /aiSystems/{systemId} {
+        allow read: if isMemberOfOrg(orgId) || isPlatformAdmin();
+        allow write: if isOwnerOfOrg(orgId) || isPlatformAdmin();
+      }
+
+      match /assessments/{assessmentId} {
+        allow read: if isMemberOfOrg(orgId) || isPlatformAdmin();
+        allow write: if isOwnerOfOrg(orgId) || isPlatformAdmin();
+      }
+
+      match /documents/{documentId} {
+        allow read: if isMemberOfOrg(orgId) || isPlatformAdmin();
+        allow write: if isOwnerOfOrg(orgId) || isPlatformAdmin();
+      }
+
+      match /trainingRecords/{recordId} {
+        allow read: if isMemberOfOrg(orgId) || isPlatformAdmin();
+        allow write: if isOwnerOfOrg(orgId) || isPlatformAdmin();
+      }
+
+      // Append-only audit trail. The client can never write or delete —
+      // only the Admin SDK writes here, and it bypasses these rules, so
+      // this is intentionally "if false" rather than an owner check.
+      match /auditLog/{entryId} {
+        allow read: if isMemberOfOrg(orgId) || isPlatformAdmin();
+        allow create, update, delete: if false;
+      }
+    }
+  }
+}
