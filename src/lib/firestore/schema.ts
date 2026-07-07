@@ -15,6 +15,7 @@ import type { PlanId } from "@/config/site";
  *     organizations/{orgId}/documents/{documentId}        (references assessmentId)
  *     organizations/{orgId}/trainingRecords/{recordId}
  *     organizations/{orgId}/auditLog/{entryId}            (append-only, server-write-only)
+ *     organizations/{orgId}/invites/{inviteId}            (server-write-only, looked up by token)
  */
 
 export const COLLECTIONS = {
@@ -25,6 +26,7 @@ export const COLLECTIONS = {
   documents: "documents",
   trainingRecords: "trainingRecords",
   auditLog: "auditLog",
+  invites: "invites",
 } as const;
 
 export const firestorePaths = {
@@ -58,6 +60,11 @@ export const firestorePaths = {
     `${COLLECTIONS.organizations}/${orgId}/${COLLECTIONS.auditLog}`,
   auditLogEntry: (orgId: string, entryId: string) =>
     `${COLLECTIONS.organizations}/${orgId}/${COLLECTIONS.auditLog}/${entryId}`,
+
+  invites: (orgId: string) =>
+    `${COLLECTIONS.organizations}/${orgId}/${COLLECTIONS.invites}`,
+  invite: (orgId: string, inviteId: string) =>
+    `${COLLECTIONS.organizations}/${orgId}/${COLLECTIONS.invites}/${inviteId}`,
 } as const;
 
 /** Structural Firestore timestamp shape — matches both the client SDK's
@@ -87,7 +94,8 @@ export interface EuRelation {
 export interface OrganizationSubscription {
   planId: PlanId;
   status: "active" | "trialing" | "past_due" | "canceled";
-  currentPeriodEnd: FirestoreTimestamp;
+  /** null on the Free plan, which has no billing period to end. */
+  currentPeriodEnd: FirestoreTimestamp | null;
 }
 
 /** Usage counters used to enforce plan limits; server-write-only. */
@@ -96,12 +104,16 @@ export interface OrganizationUsage {
   registeredSystemsCount: number;
 }
 
+/** Where AI shows up in the org's business, captured once during onboarding. */
+export type AiUsageContext = "products" | "internal_processes" | "both";
+
 export interface OrganizationDoc {
   companyName: string;
   country: string;
   industry: string;
   employeeCountRange: EmployeeCountRange;
   euRelation: EuRelation;
+  aiUsageContext: AiUsageContext;
   createdAt: FirestoreTimestamp;
   subscription: OrganizationSubscription;
   usage: OrganizationUsage;
@@ -173,7 +185,10 @@ export type AuditAction =
   | "record_created"
   | "record_updated"
   | "document_generated"
-  | "classification_changed";
+  | "classification_changed"
+  | "organization_created"
+  | "invite_sent"
+  | "invite_accepted";
 
 /** Append-only: server (Admin SDK) writes only, never updated or deleted. */
 export interface AuditLogEntryDoc {
@@ -183,4 +198,23 @@ export interface AuditLogEntryDoc {
   targetId: string;
   timestamp: FirestoreTimestamp;
   metadata?: Record<string, unknown>;
+}
+
+export type InviteStatus = "pending" | "accepted" | "expired";
+
+/**
+ * Team invites. Looked up by `token` via a collectionGroup query (see
+ * firestore.indexes.json), not by document ID, since the invite link only
+ * carries the token. Fully server-write-only — created and accepted through
+ * Admin SDK API routes, never touched by the client SDK.
+ */
+export interface InviteDoc {
+  email: string;
+  role: "member";
+  token: string;
+  status: InviteStatus;
+  invitedBy: string;
+  createdAt: FirestoreTimestamp;
+  expiresAt: FirestoreTimestamp;
+  acceptedAt?: FirestoreTimestamp;
 }

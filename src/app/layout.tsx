@@ -2,8 +2,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { siteConfig } from "@/config/site";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
 import { LegalDisclaimerBanner } from "@/components/legal-disclaimer-banner";
 
 const inter = Inter({
@@ -13,6 +11,13 @@ const inter = Inter({
 
 export const metadata = constructMetadata();
 
+/**
+ * Deliberately minimal: the marketing header/footer and the app shell live
+ * in (marketing)/layout.tsx and (app)/layout.tsx respectively, since auth
+ * and app screens need a different shell than the marketing site. Only the
+ * legal disclaimer banner is common to every single page, so it's the only
+ * thing that lives here.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -21,9 +26,7 @@ export default function RootLayout({
   return (
     <html lang={siteConfig.locale} className={inter.variable}>
       <body className="flex min-h-screen flex-col font-sans antialiased">
-        <SiteHeader />
-        <main className="flex-1">{children}</main>
-        <SiteFooter />
+        <div className="flex-1">{children}</div>
         <LegalDisclaimerBanner />
       </body>
     </html>

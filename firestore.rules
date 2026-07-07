@@ -80,6 +80,14 @@ service cloud.firestore {
         allow read: if isMemberOfOrg(orgId) || isPlatformAdmin();
         allow create, update, delete: if false;
       }
+
+      // Invites carry invitee email addresses and are looked up by token
+      // from an unauthenticated visitor (the invite link), so there is no
+      // client-side access pattern that needs a rule here at all — every
+      // read and write goes through an Admin SDK API route.
+      match /invites/{inviteId} {
+        allow read, write: if false;
+      }
     }
   }
 }
