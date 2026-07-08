@@ -18,6 +18,8 @@ const marketingRoutes = [
   "/high-risk-ai-systems",
   "/for-consultants",
   "/export-compliance",
+  "/terms",
+  "/privacy",
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

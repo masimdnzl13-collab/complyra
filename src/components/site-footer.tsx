@@ -7,7 +7,7 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-navy-100 bg-navy-900 text-navy-100">
       <div className="mx-auto max-w-6xl px-6 py-12">
-        <div className="grid gap-8 sm:grid-cols-3">
+        <div className="grid gap-8 sm:grid-cols-4">
           <div>
             <p className="text-lg font-semibold text-white">{siteConfig.name}</p>
             <p className="mt-2 text-sm text-navy-300">{siteConfig.tagline}</p>
@@ -28,6 +28,21 @@ export function SiteFooter() {
               <li>
                 <Link href="/blog" className="hover:text-white">
                   Blog
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-white">Legal</p>
+            <ul className="mt-3 space-y-2 text-sm text-navy-300">
+              <li>
+                <Link href="/terms" className="hover:text-white">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy" className="hover:text-white">
+                  Privacy Policy
                 </Link>
               </li>
             </ul>
