@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AiSystemDoc, DecisionPoint, SystemDeploymentStage } from "@/lib/firestore/schema";
+import { trackEvent } from "@/lib/analytics/track";
 
 const DECISION_POINT_OPTIONS: { value: DecisionPoint; label: string }[] = [
   { value: "hiring_evaluation", label: "Hiring or employee evaluation" },
@@ -52,6 +53,7 @@ export function AssessmentForm({ system, systemId }: { system: AiSystemDoc; syst
         const body = await response.json().catch(() => ({}));
         throw new Error(body.error ?? "Something went wrong. Please try again.");
       }
+      trackEvent("assessment_completed", { systemId });
       router.push(`/ai-systems/${systemId}`);
       router.refresh();
     } catch (err) {

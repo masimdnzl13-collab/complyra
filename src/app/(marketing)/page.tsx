@@ -81,9 +81,21 @@ const faqs = [
   },
 ] as const;
 
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: siteConfig.name,
+  url: siteConfig.url,
+  description: siteConfig.description,
+  sameAs: [siteConfig.social.twitter, siteConfig.social.linkedin, siteConfig.social.github],
+};
+
 export default function HomePage() {
   return (
     <>
+      {/* eslint-disable-next-line react/no-danger */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
+
       {/* Hero */}
       <section className="mx-auto flex max-w-4xl flex-col items-center px-6 py-24 text-center">
         <p className="rounded-full bg-navy-50 px-4 py-1 text-sm font-medium text-navy-600">

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AiUsageContext, EmployeeCountRange } from "@/lib/firestore/schema";
+import { trackEvent } from "@/lib/analytics/track";
 
 const EMPLOYEE_COUNT_RANGES: EmployeeCountRange[] = [
   "1-10",
@@ -77,6 +78,7 @@ export function OnboardingWizard() {
         const body = await response.json().catch(() => ({}));
         throw new Error(body.error ?? "Something went wrong. Please try again.");
       }
+      trackEvent("signup");
       router.push("/dashboard");
       router.refresh();
     } catch (err) {

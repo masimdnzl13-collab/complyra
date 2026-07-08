@@ -177,6 +177,19 @@ export async function sendLiteracyReminderEmail(params: { to: string; orgId: str
   });
 }
 
+export async function sendLaunchAnnouncementEmail(params: { to: string; discountNote?: string }) {
+  await sendAutomationEmail({
+    to: params.to,
+    subject: `${siteConfig.name} is live!`,
+    bodyHtml: `${siteConfig.name} is officially live. You're getting early access as a thank-you for signing up before launch.${
+      params.discountNote ? ` ${params.discountNote}` : ""
+    }`,
+    ctaLabel: "Get started",
+    ctaUrl: new URL("/register", siteConfig.url).toString(),
+    unsubscribeUrl: buildNewsletterUnsubscribeUrl(params.to),
+  });
+}
+
 export async function sendRegulatoryUpdateEmail(params: { to: string; title: string; summary: string; sourceUrl: string }) {
   await sendAutomationEmail({
     to: params.to,

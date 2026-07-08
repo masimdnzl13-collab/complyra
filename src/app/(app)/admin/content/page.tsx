@@ -7,6 +7,7 @@ import { constructMetadata } from "@/lib/construct-metadata";
 import { AdminSubNav } from "@/components/admin/admin-sub-nav";
 import { AddRegulatoryUpdateForm, DeleteRegulatoryUpdateButton } from "@/components/admin/regulatory-update-admin";
 import { BroadcastForm } from "@/components/admin/broadcast-form";
+import { WaitlistLaunchForm } from "@/components/admin/waitlist-launch-form";
 
 export const metadata = constructMetadata({
   title: "Content & Regulations",
@@ -49,6 +50,7 @@ export default async function AdminContentPage() {
       <div className="grid gap-8 lg:grid-cols-2">
         <AddRegulatoryUpdateForm />
         <BroadcastForm />
+        <WaitlistLaunchForm />
       </div>
 
       <div className="mt-8">

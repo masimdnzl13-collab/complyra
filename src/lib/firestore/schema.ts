@@ -1,4 +1,4 @@
-import type { PlanId } from "@/config/site";
+import type { PlanId, BlogCategory } from "@/config/site";
 
 /**
  * Single source of truth for every Firestore collection name, document
@@ -46,6 +46,7 @@ export const COLLECTIONS = {
   regulatoryUpdates: "regulatoryUpdates",
   cronRuns: "cronRuns",
   mrrSnapshots: "mrrSnapshots",
+  blogPosts: "blogPosts",
 } as const;
 
 export const firestorePaths = {
@@ -117,6 +118,10 @@ export const firestorePaths = {
 
   mrrSnapshots: () => COLLECTIONS.mrrSnapshots,
   mrrSnapshot: (date: string) => `${COLLECTIONS.mrrSnapshots}/${date}`,
+
+  /** Doc ID is the slug itself, so lookups by URL segment need no query. */
+  blogPosts: () => COLLECTIONS.blogPosts,
+  blogPost: (slug: string) => `${COLLECTIONS.blogPosts}/${slug}`,
 } as const;
 
 /** Structural Firestore timestamp shape — matches both the client SDK's
@@ -478,7 +483,10 @@ export type AuditAction =
   | "admin_regulatory_update_created"
   | "admin_regulatory_update_updated"
   | "admin_regulatory_update_deleted"
-  | "admin_broadcast_sent";
+  | "admin_broadcast_sent"
+  | "admin_blog_post_created"
+  | "admin_blog_post_updated"
+  | "admin_blog_post_deleted";
 
 /** Append-only: server (Admin SDK) writes only, never updated or deleted. */
 export interface AuditLogEntryDoc {
@@ -711,4 +719,28 @@ export interface MrrSnapshotDoc {
   mrr: number;
   activeSubscriptions: number;
   createdAt: FirestoreTimestamp;
+}
+
+export type BlogPostStatus = "draft" | "scheduled" | "published" | "archived";
+
+/**
+ * Content-team-authored blog posts (P16) — written by the Complyra team via
+ * /admin/blog, not by organizations. `slug` is the document ID so lookups
+ * by URL segment don't need a query. `publishDate` drives both scheduled
+ * publishing (a post with status "scheduled" and a future publishDate isn't
+ * shown on the public site yet) and the display order.
+ */
+export interface BlogPostDoc {
+  title: string;
+  metaDescription: string;
+  /** Markdown source, rendered client-side with react-markdown — same pattern as TrainingModule.markdownContent. */
+  content: string;
+  featuredImage: string | null;
+  category: BlogCategory;
+  tags: string[];
+  publishDate: FirestoreTimestamp;
+  status: BlogPostStatus;
+  authorName: string;
+  createdAt: FirestoreTimestamp;
+  updatedAt: FirestoreTimestamp;
 }

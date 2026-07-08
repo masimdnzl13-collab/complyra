@@ -141,5 +141,13 @@ service cloud.firestore {
     match /mrrSnapshots/{date} {
       allow read, write: if false;
     }
+
+    // P16 blog — public pages read published posts via the Admin SDK in
+    // server components (same as every other page in this app), and all
+    // writes go through /admin/blog API routes. No client-side access
+    // pattern needed even though the content itself is public.
+    match /blogPosts/{slug} {
+      allow read, write: if false;
+    }
   }
 }

@@ -6,6 +6,7 @@ const SECTIONS = [
   { href: "/admin/analytics", label: "Analytics" },
   { href: "/admin/consultants", label: "Consultants" },
   { href: "/admin/expert-reviews", label: "Expert Reviews" },
+  { href: "/admin/blog", label: "Blog" },
   { href: "/admin/content", label: "Content" },
   { href: "/admin/automations", label: "System Health" },
 ];

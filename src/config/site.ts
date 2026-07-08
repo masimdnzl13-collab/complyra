@@ -330,6 +330,26 @@ export const regulationDeadlines: readonly RegulationDeadline[] = [
   },
 ] as const;
 
+/** Blog taxonomy (P16) — the fixed set of categories content can be filed under. */
+export type BlogCategory =
+  | "eu-ai-act-compliance"
+  | "article-50-transparency"
+  | "risk-assessment"
+  | "ai-literacy"
+  | "case-studies"
+  | "news-updates"
+  | "product-updates";
+
+export const blogCategories: readonly { id: BlogCategory; label: string }[] = [
+  { id: "eu-ai-act-compliance", label: "EU AI Act Compliance" },
+  { id: "article-50-transparency", label: "Article 50 Transparency" },
+  { id: "risk-assessment", label: "Risk Assessment & High-Risk Systems" },
+  { id: "ai-literacy", label: "AI Literacy & Training" },
+  { id: "case-studies", label: "Case Studies" },
+  { id: "news-updates", label: "News & Updates" },
+  { id: "product-updates", label: "Product Updates" },
+] as const;
+
 export const legalConfig = {
   disclaimer:
     "Complyra is a documentation preparation tool. It does not constitute legal advice, and using it does not establish a legal or professional relationship. Consult a qualified professional for advice on your specific compliance obligations under the EU AI Act.",

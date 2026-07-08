@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { EmployeeCountRange } from "@/lib/firestore/schema";
 import type { AiRoleAnswer, EuRelationAnswer, ScanResult, UseCase } from "@/lib/risk-scan/types";
+import { trackEvent } from "@/lib/analytics/track";
 import { FindingCard } from "./finding-card";
 
 type StepId = "eu" | "role" | "usecases" | "audience" | "size" | "result";
@@ -87,6 +88,7 @@ export function ScannerWizard() {
       }
       const data: ScanResult = await response.json();
       setResult(data);
+      trackEvent("risk_scan_completed");
       setStep("result");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -97,6 +99,7 @@ export function ScannerWizard() {
 
   function selectEuRelation(value: EuRelationAnswer) {
     setAnswers((prev) => ({ ...prev, euRelation: value }));
+    trackEvent("risk_scan_started");
     if (value === "neither") {
       submitScan({ euRelation: "neither" });
     } else {

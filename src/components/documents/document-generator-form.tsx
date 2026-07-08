@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AssessmentDoc, ComplianceDocumentType } from "@/lib/firestore/schema";
 import { DOCUMENT_TEMPLATES, suggestDocumentTypes, type DocumentSuggestion } from "@/lib/documents/templates";
+import { trackEvent } from "@/lib/analytics/track";
 
 export interface AssessmentOption {
   id: string;
@@ -60,6 +61,7 @@ export function DocumentGeneratorForm({ assessments }: { assessments: Assessment
         const body = await response.json().catch(() => ({}));
         throw new Error(body.error ?? "Something went wrong. Please try again.");
       }
+      trackEvent("document_generated", { assessmentId: selected.id, count: selectedTypes.size });
       router.push("/documents");
       router.refresh();
     } catch (err) {

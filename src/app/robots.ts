@@ -7,7 +7,22 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/dashboard"],
+        disallow: [
+          "/dashboard",
+          "/onboarding",
+          "/consultant",
+          "/billing",
+          "/settings",
+          "/admin",
+          "/ai-systems",
+          "/assessments",
+          "/documents",
+          "/expert-reviews",
+          // Trailing slash so this doesn't also match the public
+          // /article-50-compliance landing page (robots.txt prefix-matches).
+          "/article-50/",
+          "/api",
+        ],
       },
     ],
     sitemap: `${siteConfig.url}/sitemap.xml`,
