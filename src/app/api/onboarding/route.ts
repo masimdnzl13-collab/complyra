@@ -78,6 +78,12 @@ export async function POST(request: NextRequest) {
       expertReviewsThisMonth: 0,
       usageMonthKey: getCurrentMonthKey(),
     },
+    emailPreferences: {
+      notificationsEnabled: true,
+      deadlineReminders: true,
+      regulatoryNews: true,
+      renewalReminders: true,
+    },
   });
   batch.set(userRef, {
     organizationId: orgRef.id,

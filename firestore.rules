@@ -127,5 +127,16 @@ service cloud.firestore {
     match /platformAuditLog/{entryId} {
       allow read, write: if false;
     }
+
+    // P14 automations — regulatory news is written by the RSS/Claude cron
+    // and read by server-rendered dashboard/regulatory-updates pages;
+    // cron run history is admin-only and read via the Admin SDK. Same
+    // no-client-access reasoning as the rest of this file.
+    match /regulatoryUpdates/{updateId} {
+      allow read, write: if false;
+    }
+    match /cronRuns/{runId} {
+      allow read, write: if false;
+    }
   }
 }

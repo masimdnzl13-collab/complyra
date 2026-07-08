@@ -43,6 +43,8 @@ export const COLLECTIONS = {
   consultantInvites: "consultantInvites",
   expertReviews: "expertReviews",
   platformAuditLog: "platformAuditLog",
+  regulatoryUpdates: "regulatoryUpdates",
+  cronRuns: "cronRuns",
 } as const;
 
 export const firestorePaths = {
@@ -105,6 +107,12 @@ export const firestorePaths = {
 
   /** Platform-level actions (consultant invites/approvals) aren't scoped to any one organization, so they get their own top-level audit log rather than a fake org. */
   platformAuditLog: () => COLLECTIONS.platformAuditLog,
+
+  regulatoryUpdates: () => COLLECTIONS.regulatoryUpdates,
+  regulatoryUpdate: (id: string) => `${COLLECTIONS.regulatoryUpdates}/${id}`,
+
+  cronRuns: () => COLLECTIONS.cronRuns,
+  cronRun: (id: string) => `${COLLECTIONS.cronRuns}/${id}`,
 } as const;
 
 /** Structural Firestore timestamp shape — matches both the client SDK's
@@ -153,6 +161,20 @@ export interface OrganizationSubscription {
   cardLastFour: string | null;
   trialEndDate: FirestoreTimestamp | null;
   trialStatus: "active" | "expired" | "converted_to_paid" | null;
+  /** Set when status flips to "past_due", cleared on recovery — lets the daily cron tell a day-1 reminder apart from a day-3+ downgrade without a separate tracking collection. */
+  pastDueSince: FirestoreTimestamp | null;
+}
+
+/**
+ * Per-org toggle for the automated emails P14 introduces. Existing org docs
+ * predate this field, so every read goes through `resolveEmailPreferences()`
+ * (src/lib/email/preferences.ts) rather than assuming the field exists.
+ */
+export interface OrganizationEmailPreferences {
+  notificationsEnabled: boolean;
+  deadlineReminders: boolean;
+  regulatoryNews: boolean;
+  renewalReminders: boolean;
 }
 
 /**
@@ -190,6 +212,8 @@ export interface OrganizationDoc {
   createdAt: FirestoreTimestamp;
   subscription: OrganizationSubscription;
   usage: OrganizationUsage;
+  /** Optional — orgs created before P14 don't have this yet. Read through `resolveEmailPreferences()`, never directly. */
+  emailPreferences?: OrganizationEmailPreferences;
 }
 
 export interface UserDoc {
@@ -478,6 +502,8 @@ export interface NewsletterSubscriberDoc {
   email: string;
   subscribedAt: FirestoreTimestamp;
   source: string;
+  /** Optional — absent/false means still subscribed. Set via the signed unsubscribe link (P14), never deleted outright so the signup is still auditable. */
+  unsubscribed?: boolean;
 }
 
 /**
@@ -617,4 +643,37 @@ export interface ExpertReviewDoc {
   flaggedForQualityReview: boolean;
   createdAt: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp;
+}
+
+export type RegulatoryUpdateCategory = "transparency" | "high_risk" | "prohibited" | "general";
+
+/** One Claude-summarized item surfaced from RSS monitoring (P14) — shown on the dashboard's Regulatory News section and in the weekly digest email. */
+export interface RegulatoryUpdateDoc {
+  title: string;
+  summary: string;
+  sourceUrl: string;
+  category: RegulatoryUpdateCategory;
+  publishedAt: FirestoreTimestamp;
+  createdAt: FirestoreTimestamp;
+}
+
+export type CronJobName = "billing-sweep" | "deadline-reminders" | "regulatory-news";
+export type CronRunStatus = "success" | "failed";
+
+/**
+ * One execution record per cron run (P14) — doubles as both the admin
+ * "Cron Job History" view and the audit trail for background jobs, so a
+ * separate platformAuditLog entry per run would just be a duplicate.
+ */
+export interface CronRunDoc {
+  jobName: CronJobName;
+  status: CronRunStatus;
+  startedAt: FirestoreTimestamp;
+  finishedAt: FirestoreTimestamp;
+  durationMs: number;
+  processedCount: number;
+  emailsSent: number;
+  emailsFailed: number;
+  errorMessage: string | null;
+  triggeredBy: "schedule" | "manual";
 }

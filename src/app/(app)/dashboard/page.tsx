@@ -10,6 +10,7 @@ import {
   type AuditLogEntryDoc,
   type ComplianceDocumentDoc,
   type OrganizationDoc,
+  type RegulatoryUpdateDoc,
   type TrainingRecordDoc,
 } from "@/lib/firestore/schema";
 import { constructMetadata } from "@/lib/construct-metadata";
@@ -53,7 +54,7 @@ export default async function DashboardPage() {
   const orgId = user.userDoc.organizationId;
   const db = getAdminFirestore();
 
-  const [orgSnap, systemsSnap, assessmentsSnap, documentsSnap, article50Snap, trainingSnap, usersSnap, auditSnap] =
+  const [orgSnap, systemsSnap, assessmentsSnap, documentsSnap, article50Snap, trainingSnap, usersSnap, auditSnap, regulatoryUpdatesSnap] =
     await Promise.all([
       db.doc(firestorePaths.organization(orgId)).get(),
       db.collection(firestorePaths.aiSystems(orgId)).get(),
@@ -63,6 +64,7 @@ export default async function DashboardPage() {
       db.collection(firestorePaths.trainingRecords(orgId)).get(),
       db.collection(firestorePaths.users()).where("organizationId", "==", orgId).get(),
       db.collection(firestorePaths.auditLog(orgId)).orderBy("timestamp", "desc").limit(8).get(),
+      db.collection(firestorePaths.regulatoryUpdates()).orderBy("createdAt", "desc").limit(3).get(),
     ]);
 
   const organization = orgSnap.data() as OrganizationDoc | undefined;
@@ -73,6 +75,7 @@ export default async function DashboardPage() {
   const trainingRecords = trainingSnap.docs.map((d) => d.data() as TrainingRecordDoc);
   const auditEntries = auditSnap.docs.map((d) => d.data() as AuditLogEntryDoc);
   const totalTeamMembers = usersSnap.size;
+  const regulatoryUpdates = regulatoryUpdatesSnap.docs.map((d) => d.data() as RegulatoryUpdateDoc);
 
   // --- AI systems ---
   const activeSystems = systems.filter((s) => s.status !== "retired");
@@ -151,6 +154,7 @@ export default async function DashboardPage() {
     undocumentedAssessmentsCount,
     article50MissingAreas,
     incompleteTrainingCount,
+    totalTeamMembers,
   });
 
   const transparencyDeadline = regulationDeadlines.find((d) => d.id === "transparency")!;
@@ -170,7 +174,7 @@ export default async function DashboardPage() {
           </h1>
           <p className="mt-1 text-navy-600">Your EU AI Act compliance overview.</p>
         </div>
-        <Link href="/dashboard" className="text-sm font-medium text-navy-500 hover:text-navy-900">
+        <Link href="/settings" className="text-sm font-medium text-navy-500 hover:text-navy-900">
           Settings
         </Link>
       </div>
@@ -287,17 +291,28 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Regulatory updates placeholder */}
-      <div className="mt-8 rounded-xl border border-dashed border-navy-200 bg-navy-50 p-6">
+      {/* Regulatory updates */}
+      <div className="mt-8 rounded-xl border border-navy-200 bg-navy-50 p-6">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-navy-900">Regulatory News</h2>
-          <Link href="/blog" className="text-xs font-medium text-accent hover:text-accent-600">
+          <Link href="/regulatory-updates" className="text-xs font-medium text-accent hover:text-accent-600">
             See all updates
           </Link>
         </div>
-        <p className="mt-2 text-sm text-navy-600">
-          Digital Omnibus approved June 2026 — high-risk obligations timeline moved to 2 December 2027.
-        </p>
+        {regulatoryUpdates.length === 0 ? (
+          <p className="mt-2 text-sm text-navy-600">No regulatory updates captured yet — check back soon.</p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {regulatoryUpdates.map((update, i) => (
+              <li key={i} className="text-sm text-navy-700">
+                <a href={update.sourceUrl} target="_blank" rel="noreferrer" className="font-medium text-navy-900 hover:text-accent">
+                  {update.title}
+                </a>
+                <span className="block text-navy-600">{update.summary}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Recent activity + team */}

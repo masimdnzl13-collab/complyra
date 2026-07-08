@@ -15,6 +15,8 @@ export interface ChecklistInputs {
   undocumentedAssessmentsCount: number;
   article50MissingAreas: { label: string }[];
   incompleteTrainingCount: number;
+  /** Total team members, used only to escalate the training item's severity below the 50%-completion mark. */
+  totalTeamMembers: number;
 }
 
 /**
@@ -76,8 +78,11 @@ export function buildComplianceChecklist(inputs: ChecklistInputs): ChecklistItem
   }
 
   if (inputs.incompleteTrainingCount > 0) {
+    // Below 50% completion is a genuine compliance risk, not just a backlog item — escalate accordingly.
+    const completionRate =
+      inputs.totalTeamMembers === 0 ? 1 : (inputs.totalTeamMembers - inputs.incompleteTrainingCount) / inputs.totalTeamMembers;
     items.push({
-      severity: "info",
+      severity: completionRate < 0.5 ? "warning" : "info",
       title: `${inputs.incompleteTrainingCount} employee${inputs.incompleteTrainingCount === 1 ? "" : "s"} haven't completed AI Literacy training`,
       description: "Article 4 requires staff to have a sufficient level of AI literacy.",
       actionLabel: "View training report",

@@ -15,5 +15,6 @@ export function freeSubscription(): OrganizationSubscription {
     cardLastFour: null,
     trialEndDate: null,
     trialStatus: null,
+    pastDueSince: null,
   };
 }

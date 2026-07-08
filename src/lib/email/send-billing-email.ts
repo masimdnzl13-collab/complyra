@@ -1,6 +1,7 @@
 import "server-only";
 import { siteConfig, brandColors } from "@/config/site";
 import { getResendClient } from "./resend";
+import { buildOrgUnsubscribeUrl } from "./unsubscribe-token";
 
 interface SendParams {
   to: string;
@@ -8,9 +9,10 @@ interface SendParams {
   bodyHtml: string;
   ctaLabel?: string;
   ctaUrl?: string;
+  unsubscribeUrl?: string;
 }
 
-async function sendBillingEmail({ to, subject, bodyHtml, ctaLabel, ctaUrl }: SendParams) {
+async function sendBillingEmail({ to, subject, bodyHtml, ctaLabel, ctaUrl, unsubscribeUrl }: SendParams) {
   const resend = getResendClient();
   // See send-invite-email.ts — Resend resolves { data: null, error } on failure instead of throwing.
   const { error } = await resend.emails.send({
@@ -33,6 +35,13 @@ async function sendBillingEmail({ to, subject, bodyHtml, ctaLabel, ctaUrl }: Sen
         <p style="color: ${brandColors.navy[500]}; font-size: 13px; line-height: 1.5; margin: 0;">
           This is a documentation preparation tool, not legal advice.
         </p>
+        ${
+          unsubscribeUrl
+            ? `<p style="color: ${brandColors.navy[300]}; font-size: 11px; margin: 16px 0 0;">
+                <a href="${unsubscribeUrl}" style="color: ${brandColors.navy[300]};">Unsubscribe from this type of email</a>
+              </p>`
+            : ""
+        }
       </div>
     `,
   });
@@ -60,13 +69,23 @@ export async function sendPaymentFailedEmail(params: { to: string; updatePayment
   });
 }
 
-export async function sendRenewalReminderEmail(params: { to: string; planName: string; price: string; renewsAt: string }) {
+export async function sendRenewalReminderEmail(params: {
+  to: string;
+  orgId: string;
+  planName: string;
+  price: string;
+  renewsAt: string;
+  isExpertReviewPlan?: boolean;
+}) {
   await sendBillingEmail({
     to: params.to,
     subject: "Your Complyra subscription renews soon",
-    bodyHtml: `Your Complyra ${params.planName} subscription renews on ${params.renewsAt}. You'll be charged ${params.price}.`,
+    bodyHtml: `Your Complyra ${params.planName} subscription renews on ${params.renewsAt}. You'll be charged ${params.price}.${
+      params.isExpertReviewPlan ? " Your expert review request limit resets on renewal day." : ""
+    }`,
     ctaLabel: "Manage billing",
     ctaUrl: new URL("/billing", siteConfig.url).toString(),
+    unsubscribeUrl: buildOrgUnsubscribeUrl(params.orgId, "renewalReminders"),
   });
 }
 
@@ -80,12 +99,13 @@ export async function sendCancellationConfirmationEmail(params: { to: string }) 
   });
 }
 
-export async function sendTrialEndingEmail(params: { to: string; planName: string }) {
+export async function sendTrialEndingEmail(params: { to: string; orgId: string; planName: string }) {
   await sendBillingEmail({
     to: params.to,
     subject: "Your Complyra trial ends in 3 days",
-    bodyHtml: `Your 14-day ${params.planName} trial ends in 3 days. Add a payment method to continue without interruption.`,
+    bodyHtml: `Your 14-day ${params.planName} trial ends in 3 days. Add a payment method to continue without interruption. After your trial ends, you'll be on the Free plan.`,
     ctaLabel: "Add payment method",
     ctaUrl: new URL("/billing", siteConfig.url).toString(),
+    unsubscribeUrl: buildOrgUnsubscribeUrl(params.orgId, "renewalReminders"),
   });
 }

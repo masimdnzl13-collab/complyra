@@ -141,6 +141,7 @@ export async function POST(request: NextRequest) {
           attrs.status === "active" && organization.subscription.trialStatus === "active"
             ? "converted_to_paid"
             : organization.subscription.trialStatus,
+        "subscription.pastDueSince": status === "active" ? null : organization.subscription.pastDueSince,
       });
       await logSubscriptionEvent(orgId, eventName, { planId: match?.plan.id, status });
       break;
@@ -169,7 +170,10 @@ export async function POST(request: NextRequest) {
     }
 
     case "subscription_payment_failed": {
-      await orgRef.update({ "subscription.status": "past_due" satisfies SubscriptionStatus });
+      await orgRef.update({
+        "subscription.status": "past_due" satisfies SubscriptionStatus,
+        "subscription.pastDueSince": FieldValue.serverTimestamp(),
+      });
       await logSubscriptionEvent(orgId, eventName, {});
       const failedOwnerEmail = await getOrgOwnerEmail(orgId);
       if (failedOwnerEmail) {
@@ -187,6 +191,7 @@ export async function POST(request: NextRequest) {
         "subscription.status": "active" satisfies SubscriptionStatus,
         "subscription.currentPeriodEnd": toTimestamp(attrs.renews_at),
         "subscription.nextBillingDate": toTimestamp(attrs.renews_at),
+        "subscription.pastDueSince": null,
       });
       await logSubscriptionEvent(orgId, eventName, {});
       break;

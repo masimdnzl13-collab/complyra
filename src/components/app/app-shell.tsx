@@ -45,6 +45,11 @@ export function AppShell({
                   Billing
                 </Link>
               )}
+              {isOwner && (
+                <Link href="/settings" className="text-sm font-medium text-navy-600 hover:text-navy-900">
+                  Settings
+                </Link>
+              )}
               {isPlatformAdmin && (
                 <span className="flex items-center gap-4 border-l border-navy-100 pl-6">
                   <Link href="/admin/subscriptions" className="text-sm font-medium text-navy-600 hover:text-navy-900">
@@ -55,6 +60,9 @@ export function AppShell({
                   </Link>
                   <Link href="/admin/expert-reviews" className="text-sm font-medium text-navy-600 hover:text-navy-900">
                     Reviews
+                  </Link>
+                  <Link href="/admin/automations" className="text-sm font-medium text-navy-600 hover:text-navy-900">
+                    Automations
                   </Link>
                 </span>
               )}
