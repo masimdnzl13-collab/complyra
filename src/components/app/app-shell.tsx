@@ -51,20 +51,12 @@ export function AppShell({
                 </Link>
               )}
               {isPlatformAdmin && (
-                <span className="flex items-center gap-4 border-l border-navy-100 pl-6">
-                  <Link href="/admin/subscriptions" className="text-sm font-medium text-navy-600 hover:text-navy-900">
-                    Subscriptions
-                  </Link>
-                  <Link href="/admin/consultants" className="text-sm font-medium text-navy-600 hover:text-navy-900">
-                    Consultants
-                  </Link>
-                  <Link href="/admin/expert-reviews" className="text-sm font-medium text-navy-600 hover:text-navy-900">
-                    Reviews
-                  </Link>
-                  <Link href="/admin/automations" className="text-sm font-medium text-navy-600 hover:text-navy-900">
-                    Automations
-                  </Link>
-                </span>
+                <Link
+                  href="/admin"
+                  className="border-l border-navy-100 pl-6 text-sm font-medium text-navy-600 hover:text-navy-900"
+                >
+                  Admin
+                </Link>
               )}
             </nav>
           </div>

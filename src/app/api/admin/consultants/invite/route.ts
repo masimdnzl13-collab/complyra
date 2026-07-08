@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { isSuperAdminUid } from "@/lib/auth/superadmin";
 import { firestorePaths } from "@/lib/firestore/schema";
 import { siteConfig } from "@/config/site";
 import { sendConsultantInviteEmail } from "@/lib/email/send-consultant-invite-email";
@@ -11,11 +12,11 @@ const INVITE_EXPIRY_MS = 14 * 24 * 60 * 60 * 1000;
 
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser();
-  if (!user || !user.userDoc) {
+  if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
-  if (user.userDoc.role !== "platform_admin") {
-    return NextResponse.json({ error: "Only platform admins can invite consultants" }, { status: 403 });
+  if (!isSuperAdminUid(user.uid)) {
+    return NextResponse.json({ error: "Only the platform superadmin can invite consultants" }, { status: 403 });
   }
 
   const { email } = await request.json().catch(() => ({}));

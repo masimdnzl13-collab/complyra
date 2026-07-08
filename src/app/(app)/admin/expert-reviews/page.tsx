@@ -1,9 +1,12 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { isSuperAdminUid } from "@/lib/auth/superadmin";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths, type ConsultantDoc, type ExpertReviewDoc } from "@/lib/firestore/schema";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { FlagReviewButton } from "@/components/admin/flag-review-button";
+import { AdminSubNav } from "@/components/admin/admin-sub-nav";
 
 export const metadata = constructMetadata({
   title: "Expert Reviews",
@@ -16,12 +19,11 @@ const COMPLETED_STATUSES = new Set(["review_submitted", "completed"]);
 export default async function AdminExpertReviewsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!user.userDoc) redirect("/onboarding");
-  if (user.userDoc.role !== "platform_admin") {
+  if (!isSuperAdminUid(user.uid)) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-semibold text-navy-900">Expert Reviews</h1>
-        <p className="mt-2 text-navy-600">This page is only available to platform admins.</p>
+        <h1 className="text-2xl font-semibold text-navy-900">403 — Forbidden</h1>
+        <p className="mt-2 text-navy-600">This page is only available to the platform superadmin.</p>
       </div>
     );
   }
@@ -74,7 +76,11 @@ export default async function AdminExpertReviewsPage() {
       <h1 className="text-3xl font-semibold tracking-tight text-navy-900">Expert Reviews</h1>
       <p className="mt-1 text-navy-600">Marketplace analytics across every consultant and case.</p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-4">
+      <div className="mt-6">
+        <AdminSubNav active="/admin/expert-reviews" />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-4">
         <StatCard label="Total requests" value={String(reviews.length)} />
         <StatCard label="Completed" value={String(completed.length)} />
         <StatCard label="Avg turnaround" value={`${avgTurnaroundDays.toFixed(1)}d`} />
@@ -133,7 +139,7 @@ export default async function AdminExpertReviewsPage() {
           ) : (
             recentSubmitted.map((r) => (
               <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-navy-100 bg-surface p-4">
-                <div>
+                <Link href={`/admin/expert-reviews/${r.id}`} className="hover:text-accent">
                   <p className="text-sm font-medium text-navy-900">
                     {consultants.get(r.consultantId ?? "")?.name ?? "Unknown consultant"}
                   </p>
@@ -142,7 +148,7 @@ export default async function AdminExpertReviewsPage() {
                     {r.rating && ` · Rated ${r.rating.stars}/5`}
                     {r.flaggedForQualityReview && <span className="ml-2 font-semibold text-danger">Flagged</span>}
                   </p>
-                </div>
+                </Link>
                 <FlagReviewButton reviewId={r.id} flagged={r.flaggedForQualityReview} />
               </div>
             ))

@@ -1,9 +1,12 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { isSuperAdminUid } from "@/lib/auth/superadmin";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths, type ConsultantApprovalStatus, type ConsultantDoc } from "@/lib/firestore/schema";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { InviteConsultantForm, ConsultantStatusActions } from "@/components/admin/consultant-admin-actions";
+import { AdminSubNav } from "@/components/admin/admin-sub-nav";
 
 export const metadata = constructMetadata({
   title: "Consultant Network",
@@ -21,12 +24,11 @@ const STATUS_STYLES: Record<ConsultantApprovalStatus, string> = {
 export default async function AdminConsultantsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!user.userDoc) redirect("/onboarding");
-  if (user.userDoc.role !== "platform_admin") {
+  if (!isSuperAdminUid(user.uid)) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-semibold text-navy-900">Consultant Network</h1>
-        <p className="mt-2 text-navy-600">This page is only available to platform admins.</p>
+        <h1 className="text-2xl font-semibold text-navy-900">403 — Forbidden</h1>
+        <p className="mt-2 text-navy-600">This page is only available to the platform superadmin.</p>
       </div>
     );
   }
@@ -41,7 +43,11 @@ export default async function AdminConsultantsPage() {
       <h1 className="text-3xl font-semibold tracking-tight text-navy-900">Consultant Network</h1>
       <p className="mt-1 text-navy-600">Invite, review, and manage the expert-review consultant pool.</p>
 
-      <div className="mt-8">
+      <div className="mt-6">
+        <AdminSubNav active="/admin/consultants" />
+      </div>
+
+      <div className="mt-2">
         <InviteConsultantForm />
       </div>
 
@@ -70,7 +76,11 @@ export default async function AdminConsultantsPage() {
             ) : (
               consultants.map((c) => (
                 <tr key={c.id} className="border-b border-navy-50 last:border-0">
-                  <td className="px-4 py-3 font-medium text-navy-900">{c.name || "—"}</td>
+                  <td className="px-4 py-3 font-medium text-navy-900">
+                    <Link href={`/admin/consultants/${c.id}`} className="hover:text-accent">
+                      {c.name || "(incomplete)"}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3 text-navy-600">{c.email}</td>
                   <td className="px-4 py-3 text-navy-500">{c.expertiseAreas?.join(", ") || "—"}</td>
                   <td className="px-4 py-3 text-navy-500">{c.languages?.join(", ").toUpperCase() || "—"}</td>

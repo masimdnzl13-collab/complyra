@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { isSuperAdminUid } from "@/lib/auth/superadmin";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths, type OrganizationDoc, type SubscriptionStatus } from "@/lib/firestore/schema";
 import { constructMetadata } from "@/lib/construct-metadata";
@@ -21,12 +23,11 @@ const STATUS_STYLES: Record<SubscriptionStatus, string> = {
 export default async function AdminSubscriptionsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!user.userDoc) redirect("/onboarding");
-  if (user.userDoc.role !== "platform_admin") {
+  if (!isSuperAdminUid(user.uid)) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-semibold text-navy-900">Subscriptions</h1>
-        <p className="mt-2 text-navy-600">This page is only available to platform admins.</p>
+        <h1 className="text-2xl font-semibold text-navy-900">403 — Forbidden</h1>
+        <p className="mt-2 text-navy-600">This page is only available to the platform superadmin.</p>
       </div>
     );
   }
@@ -49,7 +50,13 @@ export default async function AdminSubscriptionsPage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-16">
       <h1 className="text-3xl font-semibold tracking-tight text-navy-900">Subscriptions</h1>
-      <p className="mt-1 text-navy-600">All organizations and their billing state.</p>
+      <p className="mt-1 text-navy-600">
+        All organizations and their billing state. See{" "}
+        <Link href="/admin/analytics" className="font-medium text-accent hover:text-accent-600">
+          Analytics
+        </Link>{" "}
+        for MRR trends and revenue breakdowns.
+      </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-4">
         <StatCard label="Organizations" value={String(organizations.length)} />

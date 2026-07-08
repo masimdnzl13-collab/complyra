@@ -1,6 +1,7 @@
 import "server-only";
 import type { NextRequest } from "next/server";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { isSuperAdminUid } from "@/lib/auth/superadmin";
 
 export interface CronAuthResult {
   ok: boolean;
@@ -9,9 +10,9 @@ export interface CronAuthResult {
 
 /**
  * Every cron route accepts either the scheduler's CRON_SECRET bearer token
- * (Vercel Cron / an external scheduler) or a signed-in platform_admin
- * session (the admin dashboard's "run now" buttons) — same job, two ways
- * to fire it, distinguished in the CronRunDoc's `triggeredBy` field.
+ * (Vercel Cron / an external scheduler) or a signed-in superadmin session
+ * (the admin dashboard's "run now" buttons) — same job, two ways to fire
+ * it, distinguished in the CronRunDoc's `triggeredBy` field.
  */
 export async function authorizeCronRequest(request: NextRequest): Promise<CronAuthResult> {
   const authHeader = request.headers.get("authorization");
@@ -20,7 +21,7 @@ export async function authorizeCronRequest(request: NextRequest): Promise<CronAu
   }
 
   const user = await getCurrentUser();
-  if (user?.userDoc?.role === "platform_admin") {
+  if (user && isSuperAdminUid(user.uid)) {
     return { ok: true, triggeredBy: "manual" };
   }
 

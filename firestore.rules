@@ -138,5 +138,8 @@ service cloud.firestore {
     match /cronRuns/{runId} {
       allow read, write: if false;
     }
+    match /mrrSnapshots/{date} {
+      allow read, write: if false;
+    }
   }
 }

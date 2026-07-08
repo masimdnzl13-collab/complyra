@@ -85,6 +85,35 @@ export async function sendPaymentOverdueEmail(params: { to: string; updatePaymen
   });
 }
 
+const SUPPORT_EMAIL_TEMPLATES = {
+  payment_reminder: {
+    subject: "A note about your Complyra subscription payment",
+    body: "We noticed an issue with your subscription payment and wanted to check in personally. Update your payment method to keep uninterrupted access.",
+  },
+  usage_check_in: {
+    subject: "Checking in on your Complyra usage",
+    body: "We wanted to check in and see how things are going with Complyra. Let us know if you have any questions about your plan or usage.",
+  },
+  general_support: {
+    subject: "A message from the Complyra team",
+    body: "We wanted to reach out directly. If there's anything we can help with, just reply to this email.",
+  },
+} as const;
+
+export type SupportEmailTemplate = keyof typeof SUPPORT_EMAIL_TEMPLATES;
+
+/** Admin "Send support email" action (P15) — a small fixed set of preformatted templates, with an optional personal note appended. */
+export async function sendAdminSupportEmail(params: { to: string; template: SupportEmailTemplate; note?: string }) {
+  const template = SUPPORT_EMAIL_TEMPLATES[params.template];
+  await sendAutomationEmail({
+    to: params.to,
+    subject: template.subject,
+    bodyHtml: params.note ? `${template.body}<br/><br/>${params.note}` : template.body,
+    ctaLabel: "Go to billing",
+    ctaUrl: new URL("/billing", siteConfig.url).toString(),
+  });
+}
+
 export async function sendTrialEndedEmail(params: { to: string }) {
   await sendAutomationEmail({
     to: params.to,

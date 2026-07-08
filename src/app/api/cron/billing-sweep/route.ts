@@ -16,6 +16,7 @@ import {
   sendSubscriptionDowngradedEmail,
 } from "@/lib/email/send-automation-email";
 import { canSendRenewalReminder } from "@/lib/email/preferences";
+import { calculateMrr } from "@/lib/billing/mrr";
 import { authorizeCronRequest } from "@/lib/cron/authorize";
 import { withCronRunLogging } from "@/lib/cron/log-run";
 
@@ -227,6 +228,15 @@ export async function GET(request: NextRequest) {
         }
       }
     }
+
+    const { mrr, activeCount } = calculateMrr(orgsSnap.docs.map((d) => d.data() as OrganizationDoc));
+    const dateKey = now.toISOString().slice(0, 10);
+    await db.doc(firestorePaths.mrrSnapshot(dateKey)).set({
+      date: dateKey,
+      mrr,
+      activeSubscriptions: activeCount,
+      createdAt: FieldValue.serverTimestamp(),
+    });
 
     return {
       ok: true,

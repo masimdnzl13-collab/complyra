@@ -45,6 +45,7 @@ export const COLLECTIONS = {
   platformAuditLog: "platformAuditLog",
   regulatoryUpdates: "regulatoryUpdates",
   cronRuns: "cronRuns",
+  mrrSnapshots: "mrrSnapshots",
 } as const;
 
 export const firestorePaths = {
@@ -113,6 +114,9 @@ export const firestorePaths = {
 
   cronRuns: () => COLLECTIONS.cronRuns,
   cronRun: (id: string) => `${COLLECTIONS.cronRuns}/${id}`,
+
+  mrrSnapshots: () => COLLECTIONS.mrrSnapshots,
+  mrrSnapshot: (date: string) => `${COLLECTIONS.mrrSnapshots}/${date}`,
 } as const;
 
 /** Structural Firestore timestamp shape — matches both the client SDK's
@@ -214,6 +218,13 @@ export interface OrganizationDoc {
   usage: OrganizationUsage;
   /** Optional — orgs created before P14 don't have this yet. Read through `resolveEmailPreferences()`, never directly. */
   emailPreferences?: OrganizationEmailPreferences;
+  /**
+   * Set by a superadmin support action (P15) — blocks sign-in-gated writes
+   * without touching subscription/billing state. Absent/false means active.
+   * Not a substitute for deletion: per the archive-not-delete principle,
+   * there is no org-delete action, only suspend.
+   */
+  suspended?: boolean;
 }
 
 export interface UserDoc {
@@ -457,7 +468,17 @@ export type AuditAction =
   | "proposal_declined"
   | "payment_received"
   | "review_submitted"
-  | "review_rated";
+  | "review_rated"
+  | "admin_org_suspended"
+  | "admin_org_unsuspended"
+  | "admin_force_downgrade"
+  | "admin_subscription_cancelled"
+  | "admin_usage_reset"
+  | "admin_support_email_sent"
+  | "admin_regulatory_update_created"
+  | "admin_regulatory_update_updated"
+  | "admin_regulatory_update_deleted"
+  | "admin_broadcast_sent";
 
 /** Append-only: server (Admin SDK) writes only, never updated or deleted. */
 export interface AuditLogEntryDoc {
@@ -676,4 +697,18 @@ export interface CronRunDoc {
   emailsFailed: number;
   errorMessage: string | null;
   triggeredBy: "schedule" | "manual";
+}
+
+/**
+ * One snapshot per calendar day (P15), written by billing-sweep and keyed
+ * by date string so re-running the same day overwrites rather than
+ * duplicating. Feeds the admin MRR trend chart — there's no backfilled
+ * history, so the chart is honest about only showing real data going
+ * forward from when this started being recorded.
+ */
+export interface MrrSnapshotDoc {
+  date: string;
+  mrr: number;
+  activeSubscriptions: number;
+  createdAt: FirestoreTimestamp;
 }
