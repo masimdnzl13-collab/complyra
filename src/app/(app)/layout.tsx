@@ -12,5 +12,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  return <AppShell email={user.email}>{children}</AppShell>;
+  return (
+    <AppShell
+      email={user.email}
+      isOwner={user.userDoc?.role === "owner"}
+      isPlatformAdmin={user.userDoc?.role === "platform_admin"}
+    >
+      {children}
+    </AppShell>
+  );
 }

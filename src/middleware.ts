@@ -10,7 +10,7 @@ import { SESSION_COOKIE_NAME } from "@/lib/auth/constants";
  * protected API route; this middleware is a convenience layer on top, not
  * the security boundary.
  */
-const PROTECTED_PREFIXES = ["/dashboard", "/onboarding"];
+const PROTECTED_PREFIXES = ["/dashboard", "/onboarding", "/consultant"];
 const AUTH_ONLY_PATHS = ["/login", "/register"];
 
 export function middleware(request: NextRequest) {
@@ -29,5 +29,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/onboarding/:path*", "/login", "/register"],
+  matcher: ["/dashboard/:path*", "/onboarding/:path*", "/consultant/:path*", "/login", "/register"],
 };

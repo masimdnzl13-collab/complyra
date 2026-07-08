@@ -1,5 +1,15 @@
 {
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionGroup": "consultants",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "approvalStatus", "order": "ASCENDING" },
+        { "fieldPath": "isAvailable", "order": "ASCENDING" },
+        { "fieldPath": "languages", "arrayConfig": "CONTAINS" }
+      ]
+    }
+  ],
   "fieldOverrides": [
     {
       "collectionGroup": "invites",

@@ -84,3 +84,9 @@ deployed on Vercel.
 - Tasks are completed without stopping to ask for confirmation on routine,
   reversible steps — only pause for genuinely destructive or ambiguous
   decisions.
+- **No inventory record is ever truly deleted.** AI systems (and, by the
+  same logic, any future record type that feeds risk assessments or
+  compliance documents) are archived, not deleted — set `status: "retired"`
+  instead of removing the document. This preserves audit-trail integrity:
+  a document generated against a system last month must still be traceable
+  to that system's record today, even if the system has since been retired.

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 import { getSessionUser } from "@/lib/auth/session";
+import { getCurrentMonthKey } from "@/lib/usage/monthly-quota";
+import { freeSubscription } from "@/lib/billing/subscription-defaults";
 import {
   firestorePaths,
   type AiUsageContext,
@@ -67,14 +69,14 @@ export async function POST(request: NextRequest) {
     euRelation: body.euRelation,
     aiUsageContext: body.aiUsageContext,
     createdAt: FieldValue.serverTimestamp(),
-    subscription: {
-      planId: "free",
-      status: "active",
-      currentPeriodEnd: null,
-    },
+    subscription: freeSubscription(),
     usage: {
       documentsGeneratedThisMonth: 0,
+      assessmentsThisMonth: 0,
+      article50TextsThisMonth: 0,
       registeredSystemsCount: 0,
+      expertReviewsThisMonth: 0,
+      usageMonthKey: getCurrentMonthKey(),
     },
   });
   batch.set(userRef, {

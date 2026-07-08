@@ -68,6 +68,11 @@ service cloud.firestore {
         allow write: if isOwnerOfOrg(orgId) || isPlatformAdmin();
       }
 
+      match /article50Artifacts/{artifactId} {
+        allow read: if isMemberOfOrg(orgId) || isPlatformAdmin();
+        allow write: if isOwnerOfOrg(orgId) || isPlatformAdmin();
+      }
+
       match /trainingRecords/{recordId} {
         allow read: if isMemberOfOrg(orgId) || isPlatformAdmin();
         allow write: if isOwnerOfOrg(orgId) || isPlatformAdmin();
@@ -88,6 +93,39 @@ service cloud.firestore {
       match /invites/{inviteId} {
         allow read, write: if false;
       }
+    }
+
+    // Marketing newsletter signups. Written only via the Admin SDK
+    // (/api/newsletter/subscribe), so this is deny-all for the same reason
+    // invites is: there is no legitimate client-side access pattern.
+    match /newsletterSubscribers/{docId} {
+      allow read, write: if false;
+    }
+
+    // Risk-scan leads. Written by /api/risk-scan/email-report and read by
+    // the /report/[id] page, both via the Admin SDK — the public report
+    // page is server-rendered, never a client-side Firestore read, so this
+    // stays deny-all like the other lead-capture collections.
+    match /leads/{docId} {
+      allow read, write: if false;
+    }
+
+    // P13 consultant marketplace — every page that reads these (admin
+    // consultant/expert-review dashboards, the consultant portal, the
+    // org-facing expert-reviews page) is a server component going through
+    // the Admin SDK, and every write goes through an API route. No
+    // legitimate client-side access pattern, so deny-all here too.
+    match /consultants/{uid} {
+      allow read, write: if false;
+    }
+    match /consultantInvites/{inviteId} {
+      allow read, write: if false;
+    }
+    match /expertReviews/{reviewId} {
+      allow read, write: if false;
+    }
+    match /platformAuditLog/{entryId} {
+      allow read, write: if false;
     }
   }
 }

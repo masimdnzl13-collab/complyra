@@ -74,13 +74,55 @@ export const brandColors = {
 
 export type PlanId = "free" | "starter" | "growth" | "scale";
 
+/** Growth and Scale are the two plans with expert-review access — everything gating that feature reads from here. */
+const EXPERT_REVIEW_PLANS: readonly PlanId[] = ["growth", "scale"];
+export function planHasExpertReviewAccess(planId: PlanId): boolean {
+  return EXPERT_REVIEW_PLANS.includes(planId);
+}
+
+/**
+ * Complyra's cut of every consultant payment (P13). Consultant honoraria are
+ * paid through Complyra (Stripe), not directly — this is the platform fee
+ * added on top of the consultant's own rate at checkout.
+ */
+export const consultantCommissionRate = 0.18;
+
 export interface PricingPlan {
   id: PlanId;
   name: string;
   price: number;
+  /** Annual price — billed once/year, discounted vs. 12x the monthly price. 0 on Free (no paid tier). */
+  priceYearly: number;
   currency: string;
   billingPeriod: "month";
   description: string;
+  /** Free trial length for a plan's first-ever subscription, or null if the plan has no trial (Free needs none; Starter historically hasn't offered one). */
+  trialDays: number | null;
+  /**
+   * LemonSqueezy identifiers — null until the corresponding product/variant
+   * is created in the LemonSqueezy dashboard (or via the API) for this
+   * plan. The UI checks these before rendering a live checkout link;
+   * null renders a "coming soon" state instead of a broken checkout.
+   */
+  lemonSqueezy: {
+    productId: string | null;
+    variantIdMonthly: string | null;
+    variantIdYearly: string | null;
+  };
+  /** Who this plan is built for — shown on the pricing card. */
+  targetUser: string;
+  /** Number of AI systems the plan can track, or "unlimited". */
+  systemsLimit: number | "unlimited";
+  /** Risk assessments (AI-assisted classifications) the plan allows per calendar month, or "unlimited". */
+  assessmentsPerMonth: number | "unlimited";
+  /** Compliance documents (AI-assisted generation) the plan allows per calendar month, or "unlimited". */
+  documentsPerMonth: number | "unlimited";
+  /** AI-customized Article 50 texts (disclosure notices, labeling templates, deepfake text) per calendar month, or "unlimited". 0 on Free — static checklists/templates stay free, customized generation needs Starter+. */
+  article50TextsPerMonth: number | "unlimited";
+  /** Total distinct employees who can enroll in AI literacy training (not monthly — a headcount cap), or "unlimited". */
+  aiLiteracySeats: number | "unlimited";
+  /** Modules included, in display order — shown as a checklist on the card. */
+  modules: readonly string[];
   highlighted?: boolean;
 }
 
@@ -89,34 +131,202 @@ export const pricingPlans: readonly PricingPlan[] = [
     id: "free",
     name: "Free",
     price: 0,
+    priceYearly: 0,
     currency: "EUR",
     billingPeriod: "month",
     description: "Explore Complyra with a single project and limited exports.",
+    trialDays: null,
+    lemonSqueezy: { productId: null, variantIdMonthly: null, variantIdYearly: null },
+    targetUser: "Solo founders and consultants exploring their obligations before committing.",
+    systemsLimit: 1,
+    assessmentsPerMonth: 1,
+    documentsPerMonth: 5,
+    article50TextsPerMonth: 0,
+    aiLiteracySeats: 5,
+    modules: ["AI system inventory (1 system)", "Risk classification preview", "Powered by Complyra badge"],
   },
   {
     id: "starter",
     name: "Starter",
     price: 49,
+    priceYearly: 529,
     currency: "EUR",
     billingPeriod: "month",
     description: "For small teams preparing their first EU AI Act filings.",
+    trialDays: null,
+    lemonSqueezy: { productId: null, variantIdMonthly: null, variantIdYearly: null },
+    targetUser: "Small teams preparing their first EU AI Act filing.",
+    systemsLimit: 5,
+    assessmentsPerMonth: 10,
+    documentsPerMonth: 20,
+    article50TextsPerMonth: 3,
+    aiLiteracySeats: 20,
+    modules: [
+      "AI system inventory",
+      "Risk classification with legal reasoning",
+      "Core compliance documents",
+      "Article 50 transparency pack",
+    ],
   },
   {
     id: "growth",
     name: "Growth",
     price: 149,
+    priceYearly: 1593,
     currency: "EUR",
     billingPeriod: "month",
     description: "For growing teams managing multiple AI systems and audits.",
+    trialDays: 14,
+    lemonSqueezy: { productId: null, variantIdMonthly: null, variantIdYearly: null },
+    targetUser: "Growing companies managing multiple AI systems across teams.",
+    systemsLimit: 20,
+    assessmentsPerMonth: 20,
+    documentsPerMonth: 50,
+    article50TextsPerMonth: "unlimited",
+    aiLiteracySeats: "unlimited",
+    modules: [
+      "AI system inventory",
+      "Risk classification with legal reasoning",
+      "Core compliance documents",
+      "Article 50 transparency pack",
+      "Staff AI literacy training records",
+      "Compliance dashboard",
+      "Consultant review access",
+    ],
     highlighted: true,
   },
   {
     id: "scale",
     name: "Scale",
     price: 399,
+    priceYearly: 4287,
     currency: "EUR",
     billingPeriod: "month",
     description: "For organizations with complex, multi-entity compliance needs.",
+    trialDays: 14,
+    lemonSqueezy: { productId: null, variantIdMonthly: null, variantIdYearly: null },
+    targetUser: "Organizations with complex, multi-entity compliance needs.",
+    systemsLimit: "unlimited",
+    assessmentsPerMonth: "unlimited",
+    documentsPerMonth: "unlimited",
+    article50TextsPerMonth: "unlimited",
+    aiLiteracySeats: "unlimited",
+    modules: [
+      "AI system inventory",
+      "Risk classification with legal reasoning",
+      "Core compliance documents",
+      "Article 50 transparency pack",
+      "Staff AI literacy training records",
+      "Compliance dashboard",
+      "Multi-entity / multi-brand support",
+      "Audit log export",
+      "Consultant review access",
+      "API access (coming soon)",
+      "Dedicated onboarding",
+    ],
+  },
+] as const;
+
+/**
+ * Feature-by-feature comparison shown below the pricing cards. Kept here
+ * (not hand-written in the page) so pricing changes only ever happen in one
+ * place, per the central-config rule.
+ */
+export interface PricingComparisonRow {
+  feature: string;
+  values: Record<PlanId, string>;
+}
+
+export const pricingComparisonRows: readonly PricingComparisonRow[] = [
+  {
+    feature: "AI systems tracked",
+    values: { free: "1", starter: "5", growth: "20", scale: "Unlimited" },
+  },
+  {
+    feature: "Risk classification with legal reasoning",
+    values: { free: "Preview only", starter: "Full", growth: "Full", scale: "Full" },
+  },
+  {
+    feature: "Risk assessments per month",
+    values: { free: "1", starter: "10", growth: "20", scale: "Unlimited" },
+  },
+  {
+    feature: "Documents generated per month",
+    values: { free: "5", starter: "20", growth: "50", scale: "Unlimited" },
+  },
+  {
+    feature: "Article 50 checklists & static templates",
+    values: { free: "Included", starter: "Included", growth: "Included", scale: "Included" },
+  },
+  {
+    feature: "Article 50 AI-customized texts per month",
+    values: { free: "—", starter: "3", growth: "Unlimited", scale: "Unlimited" },
+  },
+  {
+    feature: "Employees enrolled in AI literacy training",
+    values: { free: "5", starter: "20", growth: "Unlimited", scale: "Unlimited" },
+  },
+  {
+    feature: "Article 50 transparency pack",
+    values: { free: "—", starter: "Included", growth: "Included", scale: "Included" },
+  },
+  {
+    feature: "Staff AI literacy training records",
+    values: { free: "—", starter: "—", growth: "Included", scale: "Included" },
+  },
+  {
+    feature: "Compliance dashboard",
+    values: { free: "—", starter: "—", growth: "Included", scale: "Included" },
+  },
+  {
+    feature: "Multi-entity support",
+    values: { free: "—", starter: "—", growth: "—", scale: "Included" },
+  },
+  {
+    feature: "Support",
+    values: { free: "Community", starter: "Email", growth: "Priority email", scale: "Dedicated onboarding" },
+  },
+] as const;
+
+/**
+ * EU AI Act compliance deadlines, referenced by the homepage countdown
+ * cards. Dates live here — nowhere else — so a regulatory timeline change
+ * (this law has moved dates before, and may again) is a one-line edit.
+ * ISO 8601 UTC so the countdown math is unambiguous regardless of the
+ * visitor's timezone.
+ */
+export interface RegulationDeadline {
+  id: "transparency" | "watermarking" | "high-risk";
+  title: string;
+  date: string;
+  description: string;
+  legalReference: string;
+}
+
+export const regulationDeadlines: readonly RegulationDeadline[] = [
+  {
+    id: "transparency",
+    title: "Transparency obligations",
+    date: "2026-08-02T00:00:00Z",
+    description:
+      "AI systems that interact with people or generate synthetic content must disclose that fact — chatbot notices and AI-content labeling become mandatory.",
+    legalReference: "Article 50",
+  },
+  {
+    id: "watermarking",
+    title: "Machine-readable marking obligation",
+    date: "2026-12-02T00:00:00Z",
+    description:
+      "Synthetic audio, image, video, and text output must carry a machine-readable, detectable mark identifying it as AI-generated.",
+    legalReference: "Article 50(2)",
+  },
+  {
+    id: "high-risk",
+    title: "High-risk system obligations",
+    date: "2027-12-02T00:00:00Z",
+    description:
+      "Full risk-management, data governance, technical documentation, and human-oversight requirements apply to high-risk AI systems.",
+    legalReference: "Articles 8–15, Annex III",
   },
 ] as const;
 
