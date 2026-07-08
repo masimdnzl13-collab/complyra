@@ -1,5 +1,6 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "crypto";
+import { siteConfig } from "@/config/site";
 
 const API_BASE = "https://api.lemonsqueezy.com/v1";
 
@@ -43,7 +44,11 @@ export async function createCheckoutUrl({ variantId, orgId, orgName, userEmail }
           custom: { organization_id: orgId },
         },
         product_options: {
-          redirect_url: "https://complyra.io/billing?checkout=success",
+          // LemonSqueezy's hosted checkout only supports a success redirect —
+          // there's no separate "error URL" the way Stripe has one. A failed
+          // or abandoned payment stays on LemonSqueezy's own checkout page
+          // for the customer to retry, rather than bouncing back here.
+          redirect_url: new URL("/checkout/success", siteConfig.url).toString(),
         },
       },
       relationships: {
