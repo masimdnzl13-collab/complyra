@@ -71,7 +71,10 @@ deployed on Vercel.
   `/api/invites/[token]/accept`, both via the Admin SDK. They're looked up
   by a random `token` field via a `collectionGroup` query, not by document
   ID or by nesting under a known org, since the invite link only carries
-  the token (see the index in `firestore.indexes.json`).
+  the token. This requires the `COLLECTION_GROUP`-scoped field override on
+  `token` in `firestore.indexes.json` — Firestore's automatic indexing only
+  covers `COLLECTION` scope by default, so this override is load-bearing,
+  not optional.
 - **Firebase Auth error codes never reach the UI.** Always resolve errors
   through `resolveErrorMessage()` / `getAuthErrorMessage()` in
   `src/lib/firebase/auth-errors.ts` before displaying them.

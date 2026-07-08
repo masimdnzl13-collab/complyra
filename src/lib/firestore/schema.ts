@@ -203,10 +203,12 @@ export interface AuditLogEntryDoc {
 export type InviteStatus = "pending" | "accepted" | "expired";
 
 /**
- * Team invites. Looked up by `token` via a collectionGroup query (see
- * firestore.indexes.json), not by document ID, since the invite link only
- * carries the token. Fully server-write-only — created and accepted through
- * Admin SDK API routes, never touched by the client SDK.
+ * Team invites. Looked up by `token` via a collectionGroup query — this
+ * requires the COLLECTION_GROUP field override on `token` declared in
+ * firestore.indexes.json; Firestore's automatic indexing only covers
+ * COLLECTION scope by default. Not looked up by document ID, since the
+ * invite link only carries the token. Fully server-write-only — created
+ * and accepted through Admin SDK API routes, never touched by the client SDK.
  */
 export interface InviteDoc {
   email: string;

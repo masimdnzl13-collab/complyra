@@ -11,7 +11,10 @@ interface SendInviteEmailParams {
 export async function sendInviteEmail({ to, organizationName, inviteUrl }: SendInviteEmailParams) {
   const resend = getResendClient();
 
-  await resend.emails.send({
+  // The Resend SDK resolves with { data: null, error } on API failures
+  // instead of throwing, so callers relying on try/catch (like
+  // /api/team/invite) would otherwise never see a failed send.
+  const { error } = await resend.emails.send({
     from: `${siteConfig.name} <${siteConfig.contact.email}>`,
     to,
     subject: `You've been invited to join ${organizationName} on ${siteConfig.name}`,
@@ -34,4 +37,8 @@ export async function sendInviteEmail({ to, organizationName, inviteUrl }: SendI
       </div>
     `,
   });
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }

@@ -1,10 +1,13 @@
 {
-  "indexes": [
+  "indexes": [],
+  "fieldOverrides": [
     {
       "collectionGroup": "invites",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [{ "fieldPath": "token", "order": "ASCENDING" }]
+      "fieldPath": "token",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" },
+        { "order": "DESCENDING", "queryScope": "COLLECTION_GROUP" }
+      ]
     }
-  ],
-  "fieldOverrides": []
+  ]
 }
