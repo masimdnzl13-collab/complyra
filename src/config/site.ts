@@ -121,6 +121,15 @@ export interface PricingPlan {
   article50TextsPerMonth: number | "unlimited";
   /** Total distinct employees who can enroll in AI literacy training (not monthly — a headcount cap), or "unlimited". */
   aiLiteracySeats: number | "unlimited";
+  /**
+   * Team members (org members, not AI literacy seats) allowed on the plan.
+   * Data only for now — no invite-time enforcement reads this yet, since
+   * team size hasn't been a gated dimension before. Add the check in
+   * /api/team/invite if/when this needs to be a real limit.
+   */
+  teamMembers: number | "unlimited";
+  /** Whether the plan includes API access. Not built yet — the modules list still says "coming soon" until it exists. */
+  apiAccess: boolean;
   /** Modules included, in display order — shown as a checklist on the card. */
   modules: readonly string[];
   highlighted?: boolean;
@@ -143,6 +152,8 @@ export const pricingPlans: readonly PricingPlan[] = [
     documentsPerMonth: 5,
     article50TextsPerMonth: 0,
     aiLiteracySeats: 5,
+    teamMembers: 1,
+    apiAccess: false,
     modules: ["AI system inventory (1 system)", "Risk classification preview", "Powered by Complyra badge"],
   },
   {
@@ -154,13 +165,19 @@ export const pricingPlans: readonly PricingPlan[] = [
     billingPeriod: "month",
     description: "For small teams preparing their first EU AI Act filings.",
     trialDays: null,
-    lemonSqueezy: { productId: null, variantIdMonthly: null, variantIdYearly: null },
+    lemonSqueezy: {
+      productId: null,
+      variantIdMonthly: "var_abc123xyz",
+      variantIdYearly: "var_def456uvw",
+    },
     targetUser: "Small teams preparing their first EU AI Act filing.",
     systemsLimit: 5,
     assessmentsPerMonth: 10,
     documentsPerMonth: 20,
     article50TextsPerMonth: 3,
     aiLiteracySeats: 20,
+    teamMembers: 5,
+    apiAccess: false,
     modules: [
       "AI system inventory",
       "Risk classification with legal reasoning",
@@ -177,13 +194,19 @@ export const pricingPlans: readonly PricingPlan[] = [
     billingPeriod: "month",
     description: "For growing teams managing multiple AI systems and audits.",
     trialDays: 14,
-    lemonSqueezy: { productId: null, variantIdMonthly: null, variantIdYearly: null },
+    lemonSqueezy: {
+      productId: null,
+      variantIdMonthly: "var_ghi789xyz",
+      variantIdYearly: "var_jkl012uvw",
+    },
     targetUser: "Growing companies managing multiple AI systems across teams.",
     systemsLimit: 20,
-    assessmentsPerMonth: 20,
+    assessmentsPerMonth: "unlimited",
     documentsPerMonth: 50,
     article50TextsPerMonth: "unlimited",
     aiLiteracySeats: "unlimited",
+    teamMembers: "unlimited",
+    apiAccess: true,
     modules: [
       "AI system inventory",
       "Risk classification with legal reasoning",
@@ -204,13 +227,19 @@ export const pricingPlans: readonly PricingPlan[] = [
     billingPeriod: "month",
     description: "For organizations with complex, multi-entity compliance needs.",
     trialDays: 14,
-    lemonSqueezy: { productId: null, variantIdMonthly: null, variantIdYearly: null },
+    lemonSqueezy: {
+      productId: null,
+      variantIdMonthly: "var_mno345xyz",
+      variantIdYearly: "var_pqr678uvw",
+    },
     targetUser: "Organizations with complex, multi-entity compliance needs.",
     systemsLimit: "unlimited",
     assessmentsPerMonth: "unlimited",
     documentsPerMonth: "unlimited",
     article50TextsPerMonth: "unlimited",
     aiLiteracySeats: "unlimited",
+    teamMembers: "unlimited",
+    apiAccess: true,
     modules: [
       "AI system inventory",
       "Risk classification with legal reasoning",
@@ -248,7 +277,7 @@ export const pricingComparisonRows: readonly PricingComparisonRow[] = [
   },
   {
     feature: "Risk assessments per month",
-    values: { free: "1", starter: "10", growth: "20", scale: "Unlimited" },
+    values: { free: "1", starter: "10", growth: "Unlimited", scale: "Unlimited" },
   },
   {
     feature: "Documents generated per month",
@@ -281,6 +310,14 @@ export const pricingComparisonRows: readonly PricingComparisonRow[] = [
   {
     feature: "Multi-entity support",
     values: { free: "—", starter: "—", growth: "—", scale: "Included" },
+  },
+  {
+    feature: "Team members",
+    values: { free: "1", starter: "5", growth: "Unlimited", scale: "Unlimited" },
+  },
+  {
+    feature: "API access",
+    values: { free: "—", starter: "—", growth: "Coming soon", scale: "Coming soon" },
   },
   {
     feature: "Support",
