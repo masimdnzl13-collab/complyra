@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getAdminAuth } from "@/lib/firebase/admin";
 import { SESSION_COOKIE_NAME, SESSION_MAX_AGE_SECONDS } from "@/lib/auth/constants";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 /** Mints a session cookie from a freshly-obtained Firebase ID token. */
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`auth-session:${ip}`, 30, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const { idToken } = await request.json();
   if (typeof idToken !== "string" || !idToken) {
     return NextResponse.json({ error: "Missing ID token" }, { status: 400 });

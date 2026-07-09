@@ -4,6 +4,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getAdminAuth, getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths, type ConsultantInviteDoc } from "@/lib/firestore/schema";
 import { SESSION_COOKIE_NAME, SESSION_MAX_AGE_SECONDS } from "@/lib/auth/constants";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 interface RouteParams {
   params: { token: string };
@@ -18,6 +19,11 @@ interface RouteParams {
  * instead of the "pending approval" screen.
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`consultant-invite-accept:${ip}`, 20, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const { idToken } = await request.json().catch(() => ({}));
   if (typeof idToken !== "string" || !idToken) {
     return NextResponse.json({ error: "Missing ID token" }, { status: 400 });

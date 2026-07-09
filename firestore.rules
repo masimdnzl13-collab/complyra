@@ -149,5 +149,11 @@ service cloud.firestore {
     match /blogPosts/{slug} {
       allow read, write: if false;
     }
+
+    // Webhook delivery dedup (idempotency) — written only by the webhook
+    // handlers themselves, via the Admin SDK.
+    match /processedWebhookEvents/{key} {
+      allow read, write: if false;
+    }
   }
 }

@@ -27,6 +27,22 @@ function extractTag(itemXml: string, tag: string): string {
 }
 
 /**
+ * regulatoryUpdates.sourceUrl (derived from `link`) ends up rendered as a
+ * raw `href` on the dashboard for every authenticated user — an allowlist
+ * here, not just at render time, means a compromised or spoofed feed can't
+ * smuggle a javascript:/data: URL all the way through summarization and
+ * into Firestore in the first place.
+ */
+function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Hand-rolled RSS 2.0 parsing via regex rather than an XML library — the
  * format is simple and predictable enough (flat <item> blocks) that adding
  * a dependency for it isn't worth it. Not meant to handle arbitrary/malformed
@@ -47,5 +63,5 @@ export async function fetchFeedItems(feedUrl: string): Promise<FeedItem[]> {
       description: extractTag(itemXml, "description"),
       pubDate: extractTag(itemXml, "pubDate") || null,
     }))
-    .filter((item) => item.title && item.link);
+    .filter((item) => item.title && item.link && isHttpUrl(item.link));
 }

@@ -47,6 +47,7 @@ export const COLLECTIONS = {
   cronRuns: "cronRuns",
   mrrSnapshots: "mrrSnapshots",
   blogPosts: "blogPosts",
+  processedWebhookEvents: "processedWebhookEvents",
 } as const;
 
 export const firestorePaths = {
@@ -122,6 +123,10 @@ export const firestorePaths = {
   /** Doc ID is the slug itself, so lookups by URL segment need no query. */
   blogPosts: () => COLLECTIONS.blogPosts,
   blogPost: (slug: string) => `${COLLECTIONS.blogPosts}/${slug}`,
+
+  /** Doc ID is `${source}:${eventId}` — see src/lib/webhooks/dedup.ts. */
+  processedWebhookEvents: () => COLLECTIONS.processedWebhookEvents,
+  processedWebhookEvent: (key: string) => `${COLLECTIONS.processedWebhookEvents}/${key}`,
 } as const;
 
 /** Structural Firestore timestamp shape — matches both the client SDK's

@@ -4,12 +4,18 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getAdminAuth, getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths, type InviteDoc } from "@/lib/firestore/schema";
 import { SESSION_COOKIE_NAME, SESSION_MAX_AGE_SECONDS } from "@/lib/auth/constants";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 interface RouteParams {
   params: { token: string };
 }
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`invite-accept:${ip}`, 20, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const { idToken } = await request.json();
   if (typeof idToken !== "string" || !idToken) {
     return NextResponse.json({ error: "Missing ID token" }, { status: 400 });

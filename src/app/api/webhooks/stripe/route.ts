@@ -5,6 +5,7 @@ import { getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths, type ConsultantDoc, type ExpertReviewDoc, type PreferredTurnaround } from "@/lib/firestore/schema";
 import { constructStripeEvent } from "@/lib/consultant/stripe-client";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { claimWebhookEvent } from "@/lib/webhooks/dedup";
 import { getOrgOwnerEmail } from "@/lib/billing/org-owner";
 import { sendPaymentConfirmedToConsultantEmail, sendReviewStartedToUserEmail } from "@/lib/email/send-expert-review-email";
 
@@ -28,6 +29,13 @@ export async function POST(request: NextRequest) {
 
   if (event.type !== "checkout.session.completed") {
     return NextResponse.json({ ok: true, skipped: event.type });
+  }
+
+  // Stripe redelivers on any non-2xx/timeout, and event.id is stable across
+  // redeliveries of the same event — the documented dedup key.
+  const isNewEvent = await claimWebhookEvent("stripe", event.id);
+  if (!isNewEvent) {
+    return NextResponse.json({ ok: true, skipped: "duplicate delivery" });
   }
 
   const session = event.data.object as Stripe.Checkout.Session;

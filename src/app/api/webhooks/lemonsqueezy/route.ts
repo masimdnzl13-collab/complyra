@@ -8,6 +8,7 @@ import { findPlanByVariantId } from "@/lib/billing/plan-lookup";
 import { freeSubscription } from "@/lib/billing/subscription-defaults";
 import { getOrgOwnerEmail } from "@/lib/billing/org-owner";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { claimWebhookEvent, hashPayload } from "@/lib/webhooks/dedup";
 import {
   sendCancellationConfirmationEmail,
   sendPaymentFailedEmail,
@@ -72,6 +73,15 @@ export async function POST(request: NextRequest) {
   const signature = request.headers.get("x-signature");
   if (!verifyWebhookSignature(rawBody, signature)) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+  }
+
+  // Redeliveries (LemonSqueezy retries on any non-2xx or timeout) must not
+  // re-send emails or duplicate the audit log — an identical retried body
+  // hashes the same and is skipped; a genuinely new event for the same
+  // resource has different attributes and is processed normally.
+  const isNewEvent = await claimWebhookEvent("lemonsqueezy", hashPayload(rawBody));
+  if (!isNewEvent) {
+    return NextResponse.json({ ok: true, skipped: "duplicate delivery" });
   }
 
   const payload = JSON.parse(rawBody) as LemonSqueezyWebhookPayload;
