@@ -61,10 +61,6 @@ export const brandColors = {
     DEFAULT: "#F7F8FA",
     surface: "#FFFFFF",
   },
-  /** Dark backdrop reserved for the marketing hero's "regulation sky" — a near-black, slightly blue-tinted navy. Never used inside the app shell. */
-  ink: {
-    DEFAULT: "#0B1D33",
-  },
   success: {
     DEFAULT: "#3FA772",
   },

@@ -12,15 +12,6 @@ body {
   background: var(--background);
 }
 
-@layer base {
-  h1,
-  h2,
-  h3 {
-    font-family: var(--font-space-grotesk), var(--font-inter), sans-serif;
-    letter-spacing: -0.02em;
-  }
-}
-
 @layer utilities {
   .text-balance {
     text-wrap: balance;
@@ -28,86 +19,72 @@ body {
 }
 
 /*
- * Hero aurora background (src/components/marketing/hero-aurora.tsx).
- * Colors are set inline by that component, sourced from brandColors in
- * site.ts — nothing here hardcodes a color, only movement.
+ * Page-wide background texture for the marketing site
+ * (src/components/marketing/background-texture.tsx). Fixed to the
+ * viewport (not one section) so it reads as a continuous backdrop behind
+ * every page, not confined to a box. Colors are set inline by that
+ * component, sourced from brandColors in site.ts — nothing here
+ * hardcodes a color, only movement.
  */
-.hero-aurora {
-  position: absolute;
+.background-texture {
+  position: fixed;
   inset: 0;
+  z-index: -10;
   overflow: hidden;
   pointer-events: none;
-  z-index: 0;
 }
 
-.hero-aurora__blob {
+.background-texture__blob {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(100px);
-  opacity: 0.5;
+  filter: blur(130px);
+  opacity: 0.2;
   will-change: transform;
 }
 
-.hero-aurora__blob--a {
-  top: -15%;
-  left: 5%;
-  animation: hero-aurora-a 26s ease-in-out infinite;
+.background-texture__blob--sky {
+  top: 0;
+  left: -12%;
+  animation: background-texture-drift-a 48s ease-in-out infinite;
 }
 
-.hero-aurora__blob--b {
-  bottom: -20%;
-  left: 30%;
-  animation: hero-aurora-b 22s ease-in-out infinite;
+.background-texture__blob--navy {
+  bottom: -15%;
+  right: -12%;
+  animation: background-texture-drift-b 56s ease-in-out infinite;
 }
 
-.hero-aurora__blob--c {
-  top: 10%;
-  right: -10%;
-  animation: hero-aurora-c 30s ease-in-out infinite;
-}
-
-@keyframes hero-aurora-a {
+/* Barely-there drift — a few percent of movement over most of a minute, never enough to distract from reading. */
+@keyframes background-texture-drift-a {
   0%,
   100% {
-    transform: translate(0, 0) scale(1);
+    transform: translate(0, 0);
   }
   50% {
-    transform: translate(8%, 10%) scale(1.15);
+    transform: translate(4%, 3%);
   }
 }
 
-@keyframes hero-aurora-b {
+@keyframes background-texture-drift-b {
   0%,
   100% {
-    transform: translate(0, 0) scale(1);
+    transform: translate(0, 0);
   }
   50% {
-    transform: translate(-10%, -6%) scale(0.9);
+    transform: translate(-3%, -4%);
   }
 }
 
-@keyframes hero-aurora-c {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(-8%, 8%) scale(1.1);
-  }
-}
-
-/* Users who asked the OS to reduce motion never see the drift. */
 @media (prefers-reduced-motion: reduce) {
-  .hero-aurora__blob {
+  .background-texture__blob {
     animation: none;
   }
 }
 
-/* Mobile: keep the color wash, drop the animation and cut blur cost. */
 @media (max-width: 640px) {
-  .hero-aurora__blob {
+  .background-texture__blob {
     animation: none;
-    filter: blur(60px);
-    opacity: 0.35;
+    filter: blur(80px);
+    opacity: 0.12;
   }
 }

@@ -18,11 +18,9 @@ const config: Config = {
         success: brandColors.success.DEFAULT,
         warning: brandColors.warning.DEFAULT,
         danger: brandColors.danger.DEFAULT,
-        ink: brandColors.ink.DEFAULT,
       },
       fontFamily: {
         sans: ["var(--font-inter)"],
-        display: ["var(--font-space-grotesk)"],
         mono: ["var(--font-jetbrains-mono)"],
       },
     },
