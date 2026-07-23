@@ -4,6 +4,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import type { AiSystemDoc, AssessmentDoc } from "@/lib/firestore/schema";
 import type { DocumentTemplate } from "./templates";
+import { INJECTION_DEFENSE_NOTE, withTimeoutAndRetry, wrapUserInput } from "@/lib/claude/safe-call";
 
 interface GenerateParams {
   template: DocumentTemplate;
@@ -30,43 +31,46 @@ export async function generateDocumentSections({
   );
 
   const context = `
-Company: ${companyName}
-System name: ${system.name}
-System description: ${system.description}
-What it does: ${system.purpose}
+Company: ${wrapUserInput(companyName)}
+System name: ${wrapUserInput(system.name)}
+System description: ${wrapUserInput(system.description)}
+What it does: ${wrapUserInput(system.purpose)}
 Company's role: ${system.role}
-Vendor / built on: ${system.vendor}
+Vendor / built on: ${wrapUserInput(system.vendor)}
 Data types: ${system.dataTypes.join(", ") || "none recorded"}
 Affected groups: ${system.affectedGroups.join(", ") || "none recorded"}
 Decision-making role: ${system.decisionMakingRole}
 
 Risk classification: ${assessment.riskTier}
 Legal basis: ${assessment.legalArticleReference}
-Classification justification: ${assessment.justification}
+Classification justification: ${wrapUserInput(assessment.justification)}
 Decision point assessed: ${assessment.decisionPoint}
 `.trim();
 
   const sectionList = template.sections.map((s) => `- ${s.title}: ${s.guidance}`).join("\n");
 
   const client = new Anthropic();
-  const response = await client.messages.parse({
-    model: "claude-opus-4-8",
-    max_tokens: 4096,
-    thinking: { type: "adaptive" },
-    output_config: {
-      effort: "high",
-      format: zodOutputFormat(sectionSchema),
-    },
-    system:
-      `You are drafting a "${template.label}" document for Complyra, an EU AI Act compliance ` +
-      "preparation tool. This document is not legal advice, and generating it does not create a legal " +
-      "or professional relationship — do not claim otherwise anywhere in the text. Write each section " +
-      "professionally and specifically to the system described, not generically. Base every claim on " +
-      "the facts given; do not invent details about the system, the company, or the law that aren't " +
-      "supported by the context provided.\n\nSections to write:\n" +
-      sectionList,
-    messages: [{ role: "user", content: context }],
-  });
+  const response = await withTimeoutAndRetry(() =>
+    client.messages.parse({
+      model: "claude-opus-4-8",
+      max_tokens: 4096,
+      thinking: { type: "adaptive" },
+      output_config: {
+        effort: "high",
+        format: zodOutputFormat(sectionSchema),
+      },
+      system:
+        `You are drafting a "${template.label}" document for Complyra, an EU AI Act compliance ` +
+        "preparation tool. This document is not legal advice, and generating it does not create a legal " +
+        "or professional relationship — do not claim otherwise anywhere in the text. Write each section " +
+        "professionally and specifically to the system described, not generically. Base every claim on " +
+        "the facts given; do not invent details about the system, the company, or the law that aren't " +
+        "supported by the context provided.\n\nSections to write:\n" +
+        sectionList +
+        INJECTION_DEFENSE_NOTE,
+      messages: [{ role: "user", content: context }],
+    })
+  );
 
   if (!response.parsed_output) {
     throw new Error("Claude did not return parseable document sections");

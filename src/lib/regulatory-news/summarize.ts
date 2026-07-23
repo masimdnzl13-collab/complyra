@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import type { FeedItem } from "./rss";
+import { INJECTION_DEFENSE_NOTE, withTimeoutAndRetry, wrapUserInput } from "@/lib/claude/safe-call";
 
 const SummarySchema = z.object({
   items: z.array(
@@ -31,24 +32,30 @@ export async function summarizeRegulatoryUpdates(items: FeedItem[]): Promise<Sum
   if (items.length === 0) return [];
 
   const listing = items
-    .map((item, i) => `${i + 1}. Title: ${item.title}\n   Description: ${item.description}`)
+    .map((item, i) => `${i + 1}. Title: ${wrapUserInput(item.title)}\n   Description: ${wrapUserInput(item.description)}`)
     .join("\n\n");
 
   const client = new Anthropic();
-  const response = await client.messages.parse({
-    model: "claude-opus-4-8",
-    max_tokens: 4096,
-    thinking: { type: "adaptive" },
-    output_config: {
-      effort: "medium",
-      format: zodOutputFormat(SummarySchema),
-    },
-    system:
-      "You summarize EU AI Act regulatory news for Complyra, a compliance preparation tool used by SME business " +
-      "owners who are not lawyers. For each item given, write a concise, actionable 1-2 sentence summary and " +
-      "classify which part of the Act it mainly concerns. Return exactly one summary per item, in the same order.",
-    messages: [{ role: "user", content: `Summarize these ${items.length} AI Act regulatory updates:\n\n${listing}` }],
-  });
+  const response = await withTimeoutAndRetry(() =>
+    client.messages.parse({
+      model: "claude-opus-4-8",
+      max_tokens: 4096,
+      thinking: { type: "adaptive" },
+      output_config: {
+        effort: "medium",
+        format: zodOutputFormat(SummarySchema),
+      },
+      system:
+        "You summarize EU AI Act regulatory news for Complyra, a compliance preparation tool used by SME business " +
+        "owners who are not lawyers. For each item given, write a concise, actionable 1-2 sentence summary and " +
+        "classify which part of the Act it mainly concerns. Return exactly one summary per item, in the same order. " +
+        "These items come from external RSS feeds, not from Complyra's own users." +
+        INJECTION_DEFENSE_NOTE,
+      messages: [
+        { role: "user", content: `Summarize these ${items.length} AI Act regulatory updates:\n\n${listing}` },
+      ],
+    })
+  );
 
   if (!response.parsed_output) {
     throw new Error("Claude did not return parseable summaries");

@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import type { AiSystemDoc, AnnexIIICategory, DecisionPoint } from "@/lib/firestore/schema";
+import { INJECTION_DEFENSE_NOTE, withTimeoutAndRetry, wrapUserInput } from "@/lib/claude/safe-call";
 
 const AssessmentSchema = z.object({
   riskTier: z.enum(["high-risk", "limited-risk", "minimal-risk"]),
@@ -42,12 +43,12 @@ export async function evaluateWithClaude({
   systemDeploymentStage,
 }: EvaluateParams): Promise<ClaudeAssessmentResult> {
   const description = `
-System name: ${system.name}
-Description: ${system.description}
+System name: ${wrapUserInput(system.name)}
+Description: ${wrapUserInput(system.description)}
 Company's role: ${system.role}
-Vendor / built on: ${system.vendor}
+Vendor / built on: ${wrapUserInput(system.vendor)}
 Business area: ${system.businessArea}
-What it concretely does: ${system.purpose}
+What it concretely does: ${wrapUserInput(system.purpose)}
 Data types processed: ${system.dataTypes.join(", ") || "none recorded"}
 Groups affected by its output: ${system.affectedGroups.join(", ") || "none recorded"}
 Decision-making role: ${system.decisionMakingRole}
@@ -60,25 +61,28 @@ Candidate Annex III category from rule-based mapping (may be none): ${annexIIICa
 `.trim();
 
   const client = new Anthropic();
-  const response = await client.messages.parse({
-    model: "claude-opus-4-8",
-    max_tokens: 2048,
-    thinking: { type: "adaptive" },
-    output_config: {
-      effort: "high",
-      format: zodOutputFormat(AssessmentSchema),
-    },
-    system:
-      "You are a EU AI Act risk-classification assistant inside Complyra, a compliance preparation tool. " +
-      "This is not legal advice. Prohibited-practice and narrow-derogation cases have already been " +
-      "filtered out before you're called — you are only ever classifying the remaining, genuinely " +
-      "judgment-requiring case. Given a structured description of an AI system, classify it as " +
-      "high-risk, limited-risk, or minimal-risk under the EU AI Act, citing the specific article(s) or " +
-      "Annex III category you rely on. Be conservative: if the classification is genuinely ambiguous or " +
-      "could plausibly shift with facts not given, say so explicitly in the caveats field and lower your " +
-      "confidence rather than asserting false certainty.",
-    messages: [{ role: "user", content: description }],
-  });
+  const response = await withTimeoutAndRetry(() =>
+    client.messages.parse({
+      model: "claude-opus-4-8",
+      max_tokens: 2048,
+      thinking: { type: "adaptive" },
+      output_config: {
+        effort: "high",
+        format: zodOutputFormat(AssessmentSchema),
+      },
+      system:
+        "You are a EU AI Act risk-classification assistant inside Complyra, a compliance preparation tool. " +
+        "This is not legal advice. Prohibited-practice and narrow-derogation cases have already been " +
+        "filtered out before you're called — you are only ever classifying the remaining, genuinely " +
+        "judgment-requiring case. Given a structured description of an AI system, classify it as " +
+        "high-risk, limited-risk, or minimal-risk under the EU AI Act, citing the specific article(s) or " +
+        "Annex III category you rely on. Be conservative: if the classification is genuinely ambiguous or " +
+        "could plausibly shift with facts not given, say so explicitly in the caveats field and lower your " +
+        "confidence rather than asserting false certainty." +
+        INJECTION_DEFENSE_NOTE,
+      messages: [{ role: "user", content: description }],
+    })
+  );
 
   if (!response.parsed_output) {
     throw new Error("Claude did not return a parseable assessment");
