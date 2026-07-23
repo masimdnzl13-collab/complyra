@@ -23,6 +23,14 @@ const config: Config = {
         sans: ["var(--font-inter)"],
         mono: ["var(--font-jetbrains-mono)"],
       },
+      spacing: {
+        // Shared section-rhythm scale — every marketing section picks its
+        // top/bottom padding from here so vertical spacing stays consistent
+        // across the page instead of ad hoc py-* values per section.
+        "section-lg": "6rem",
+        "section-md": "4rem",
+        "section-sm": "1.5rem",
+      },
     },
   },
   plugins: [require("@tailwindcss/typography")],

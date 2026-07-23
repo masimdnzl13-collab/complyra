@@ -47,7 +47,7 @@ export function NewsletterForm() {
         <button
           type="submit"
           disabled={status === "sending"}
-          className="rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-600 disabled:opacity-50"
+          className="rounded-md bg-accent px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-600 disabled:opacity-50"
         >
           {status === "sending" ? "Subscribing…" : "Subscribe"}
         </button>

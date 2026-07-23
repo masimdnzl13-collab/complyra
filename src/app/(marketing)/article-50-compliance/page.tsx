@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { regulationDeadlines } from "@/config/site";
+import { getTimeRemaining } from "@/lib/countdown";
 import { CountdownCard } from "@/components/marketing/countdown-card";
 import { NewsletterForm } from "@/components/marketing/newsletter-form";
 
@@ -10,6 +11,8 @@ export const metadata = constructMetadata({
     "Your chatbot must disclose itself to users starting August 2026. Generate disclosure notices, labeling templates, and deadline tracking with Vermoncy.",
   path: "/article-50-compliance",
 });
+
+export const revalidate = 60;
 
 const transparencyDeadline = regulationDeadlines.find((d) => d.id === "transparency")!;
 
@@ -44,7 +47,7 @@ export default function Article50CompliancePage() {
       </div>
 
       <div className="mt-10">
-        <CountdownCard deadline={transparencyDeadline} />
+        <CountdownCard deadline={transparencyDeadline} initialRemaining={getTimeRemaining(transparencyDeadline.date)} />
       </div>
 
       <div className="mt-12 grid gap-6 sm:grid-cols-3">

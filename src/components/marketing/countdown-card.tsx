@@ -24,22 +24,28 @@ function TimeUnit({ value, label }: { value: number; label: string }) {
 }
 
 /**
- * Renders `null` (no remaining/inForce state) until mounted, so the server
- * render and the very first client render match exactly — the live
- * countdown only starts ticking after hydration, which is what keeps this
- * free of hydration-mismatch warnings.
+ * `initialRemaining` is computed on the server (see page.tsx) at request/
+ * revalidation time and used as the initial state here, so the very first
+ * paint already shows real days/hours/minutes — never a "loading" placeholder.
+ * The client's first render uses that same value (no hydration mismatch),
+ * then a 1s interval takes over with the client's own clock after mount.
  */
-export function CountdownCard({ deadline }: { deadline: RegulationDeadline }) {
-  const [remaining, setRemaining] = useState<TimeRemaining | null>(null);
+export function CountdownCard({
+  deadline,
+  initialRemaining,
+}: {
+  deadline: RegulationDeadline;
+  initialRemaining: TimeRemaining;
+}) {
+  const [remaining, setRemaining] = useState<TimeRemaining>(initialRemaining);
 
   useEffect(() => {
     const update = () => setRemaining(getTimeRemaining(deadline.date));
-    update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, [deadline.date]);
 
-  const inForce = remaining?.inForce ?? false;
+  const inForce = remaining.inForce;
 
   return (
     <div className="flex flex-col rounded-xl border border-navy-100 bg-white p-6 shadow-sm">
@@ -59,7 +65,7 @@ export function CountdownCard({ deadline }: { deadline: RegulationDeadline }) {
       <p className="mt-2 text-sm text-navy-600">{deadline.description}</p>
 
       <div className="mt-5 grid grid-cols-4 gap-2" aria-live="polite">
-        {remaining && !inForce ? (
+        {!inForce ? (
           <>
             <TimeUnit value={remaining.days} label="Days" />
             <TimeUnit value={remaining.hours} label="Hours" />
@@ -68,7 +74,7 @@ export function CountdownCard({ deadline }: { deadline: RegulationDeadline }) {
           </>
         ) : (
           <div className="col-span-4 rounded-lg bg-navy-50 px-2 py-3 text-center text-sm font-medium text-navy-500">
-            {inForce ? "This obligation is now in effect." : "Loading countdown…"}
+            This obligation is now in effect.
           </div>
         )}
       </div>

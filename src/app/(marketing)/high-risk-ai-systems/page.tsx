@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { regulationDeadlines } from "@/config/site";
+import { getTimeRemaining } from "@/lib/countdown";
 import { CountdownCard } from "@/components/marketing/countdown-card";
 import { NewsletterForm } from "@/components/marketing/newsletter-form";
 
@@ -10,6 +11,8 @@ export const metadata = constructMetadata({
     "Risk management, technical documentation, and human oversight for high-risk AI systems — ahead of the December 2027 deadline.",
   path: "/high-risk-ai-systems",
 });
+
+export const revalidate = 60;
 
 const highRiskDeadline = regulationDeadlines.find((d) => d.id === "high-risk")!;
 
@@ -45,7 +48,7 @@ export default function HighRiskAiSystemsPage() {
       </div>
 
       <div className="mt-10">
-        <CountdownCard deadline={highRiskDeadline} />
+        <CountdownCard deadline={highRiskDeadline} initialRemaining={getTimeRemaining(highRiskDeadline.date)} />
       </div>
 
       <div className="mt-12">
