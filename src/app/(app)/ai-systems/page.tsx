@@ -4,6 +4,8 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths, type AiSystemDoc } from "@/lib/firestore/schema";
 import { constructMetadata } from "@/lib/construct-metadata";
+import { EmptyState } from "@/components/app/empty-state";
+import { Zap } from "lucide-react";
 
 export const metadata = constructMetadata({
   title: "AI Systems",
@@ -68,20 +70,12 @@ export default async function AiSystemsPage() {
       </div>
 
       {systems.length === 0 ? (
-        <div className="mt-10 rounded-xl border border-navy-100 bg-navy-50 p-10 text-center">
-          <h2 className="text-lg font-semibold text-navy-900">Your inventory is empty</h2>
-          <p className="mx-auto mt-2 max-w-md text-sm text-navy-600">
-            Building your AI inventory is the first, non-negotiable step toward EU AI Act
-            compliance — everything else, from risk classification to generated documents,
-            builds on it.
-          </p>
-          <Link
-            href="/ai-systems/new"
-            className="mt-6 inline-block rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-600"
-          >
-            Add your first AI system
-          </Link>
-        </div>
+        <EmptyState
+          icon={Zap}
+          title="Your inventory is empty"
+          description="Building your AI inventory is the first, non-negotiable step toward EU AI Act compliance — everything else, from risk classification to generated documents, builds on it."
+          action={{ label: "Add your first AI system", href: "/ai-systems/new" }}
+        />
       ) : (
         <div className="mt-8 space-y-3">
           {systems.map((system) => (

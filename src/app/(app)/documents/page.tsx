@@ -5,6 +5,8 @@ import { getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths, type ComplianceDocumentDoc } from "@/lib/firestore/schema";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { DOCUMENT_TEMPLATES } from "@/lib/documents/templates";
+import { EmptyState } from "@/components/app/empty-state";
+import { FileText } from "lucide-react";
 
 export const metadata = constructMetadata({
   title: "Documents",
@@ -48,18 +50,12 @@ export default async function DocumentsPage() {
       </div>
 
       {documents.length === 0 ? (
-        <div className="mt-10 rounded-xl border border-navy-100 bg-navy-50 p-10 text-center">
-          <h2 className="text-lg font-semibold text-navy-900">No documents yet</h2>
-          <p className="mx-auto mt-2 max-w-md text-sm text-navy-600">
-            Generate compliance documentation from any risk assessment you&apos;ve run.
-          </p>
-          <Link
-            href="/documents/new"
-            className="mt-6 inline-block rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-600"
-          >
-            Generate your first document
-          </Link>
-        </div>
+        <EmptyState
+          icon={FileText}
+          title="No documents yet"
+          description="Generate compliance documentation from any risk assessment you've run."
+          action={{ label: "Generate your first document", href: "/documents/new" }}
+        />
       ) : (
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
           {documents.map((document) => (

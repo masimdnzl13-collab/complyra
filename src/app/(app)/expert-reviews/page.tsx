@@ -10,6 +10,8 @@ import {
 } from "@/lib/firestore/schema";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { ProposalActions, RatingForm } from "@/components/risk-assessment/expert-review-actions";
+import { EmptyState } from "@/components/app/empty-state";
+import { MessageCircle } from "lucide-react";
 
 export const metadata = constructMetadata({
   title: "Expert Reviews",
@@ -58,10 +60,12 @@ export default async function ExpertReviewsPage() {
       <p className="mt-1 text-navy-600">Requests you&apos;ve sent to the Complyra consultant network.</p>
 
       {reviews.length === 0 ? (
-        <p className="mt-8 text-sm text-navy-500">
-          No expert review requests yet. Request one from a system&apos;s risk assessment when it&apos;s flagged as an
-          edge case.
-        </p>
+        <EmptyState
+          icon={MessageCircle}
+          title="No expert review requests yet"
+          description="Request one from a system's risk assessment when it's flagged as an edge case."
+          action={{ label: "View AI systems", href: "/ai-systems" }}
+        />
       ) : (
         <div className="mt-8 space-y-6">
           {reviews.map((r) => (
