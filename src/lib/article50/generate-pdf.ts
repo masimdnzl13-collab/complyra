@@ -132,7 +132,7 @@ export async function generateArticle50Pdf(artifact: Article50Artifact): Promise
   }
 
   const disclaimer =
-    "This is a documentation preparation tool. It does not constitute legal advice. Prepared with Complyra.";
+    "This is a documentation preparation tool. It does not constitute legal advice. Prepared with Vermoncy.";
   cursor = ensureSpace(doc, cursor, 24);
   for (const line of wrapText(disclaimer, font, 7.5, CONTENT_WIDTH)) {
     cursor.page.drawText(line, { x: MARGIN, y: cursor.y, size: 7.5, font, color: rgb(0.55, 0.55, 0.55) });

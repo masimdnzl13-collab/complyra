@@ -39,7 +39,7 @@ export async function createCheckoutUrl({ variantId, orgId, orgName, userEmail }
           email: userEmail,
           name: orgName,
           // Threaded back through the webhook payload so we can match the
-          // resulting order/subscription to a Complyra organization without
+          // resulting order/subscription to a Vermoncy organization without
           // relying on email matching.
           custom: { organization_id: orgId },
         },

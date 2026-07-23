@@ -43,7 +43,7 @@ const DEFAULTS: BlogPostFormValues = {
   tags: "",
   publishDate: new Date().toISOString().slice(0, 10),
   status: "draft",
-  authorName: "Complyra Team",
+  authorName: "Vermoncy Team",
 };
 
 export function BlogPostForm({ mode, initialValues }: BlogPostFormProps) {

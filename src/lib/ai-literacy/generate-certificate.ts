@@ -40,7 +40,7 @@ export async function generateCertificatePdf(record: TrainingRecordDoc, companyN
   const certId = `Certificate ID: ${record.certificateId ?? "—"}`;
   page.drawText(certId, { x: 60, y: 60, size: 9, font, color: rgb(0.55, 0.55, 0.55) });
 
-  const disclaimer = "Prepared with Complyra. Not legal advice.";
+  const disclaimer = "Prepared with Vermoncy. Not legal advice.";
   const disclaimerWidth = font.widthOfTextAtSize(disclaimer, 9);
   page.drawText(disclaimer, { x: 842 - 60 - disclaimerWidth, y: 60, size: 9, font, color: rgb(0.55, 0.55, 0.55) });
 

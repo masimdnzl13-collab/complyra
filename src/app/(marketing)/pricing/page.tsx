@@ -106,7 +106,7 @@ export default function PricingPage() {
         <p className="mt-4 text-sm text-navy-600">
           A single outside-counsel analysis for EU AI Act readiness typically runs into the
           thousands of euros, as a one-time engagement that goes out of date the moment your AI
-          systems change. Every Complyra plan is a monthly subscription — your documentation stays
+          systems change. Every Vermoncy plan is a monthly subscription — your documentation stays
           current as your systems evolve, at a fraction of the cost of a one-off review.
         </p>
       </div>

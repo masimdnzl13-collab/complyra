@@ -140,7 +140,7 @@ export async function generateAssessmentPdf(
   const disclaimer =
     "This is a documentation preparation tool. It does not constitute legal advice, and using it does " +
     "not establish a legal or professional relationship. Consult a qualified professional for advice on " +
-    "your specific compliance obligations under the EU AI Act. Prepared with Complyra.";
+    "your specific compliance obligations under the EU AI Act. Prepared with Vermoncy.";
   cursor = ensureSpace(doc, cursor, 40);
   cursor = { page: cursor.page, y: MARGIN + 30 };
   for (const line of wrapText(disclaimer, font, 8, CONTENT_WIDTH)) {

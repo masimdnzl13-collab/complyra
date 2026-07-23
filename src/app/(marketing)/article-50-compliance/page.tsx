@@ -7,7 +7,7 @@ import { NewsletterForm } from "@/components/marketing/newsletter-form";
 export const metadata = constructMetadata({
   title: "Article 50 Transparency Compliance",
   description:
-    "Your chatbot must disclose itself to users starting August 2026. Generate disclosure notices, labeling templates, and deadline tracking with Complyra.",
+    "Your chatbot must disclose itself to users starting August 2026. Generate disclosure notices, labeling templates, and deadline tracking with Vermoncy.",
   path: "/article-50-compliance",
 });
 
@@ -34,7 +34,7 @@ export default function Article50CompliancePage() {
       <div className="text-center">
         <h1 className="text-4xl font-semibold tracking-tight text-navy-900">Article 50 Transparency Compliance</h1>
         <p className="mt-4 text-lg text-navy-600">
-          Your chatbot must disclose itself to users. Deadlines, requirements, and ready-to-use templates — all inside Complyra.
+          Your chatbot must disclose itself to users. Deadlines, requirements, and ready-to-use templates — all inside Vermoncy.
         </p>
         <div className="mt-6 flex justify-center gap-3">
           <Link href="/risk-scan" className="rounded-md bg-accent px-6 py-3 text-sm font-medium text-white hover:bg-accent-600">
@@ -57,7 +57,7 @@ export default function Article50CompliancePage() {
       </div>
 
       <div className="mt-12 rounded-xl border border-navy-100 bg-navy-50 p-6">
-        <h2 className="text-lg font-semibold text-navy-900">What Complyra generates for you</h2>
+        <h2 className="text-lg font-semibold text-navy-900">What Vermoncy generates for you</h2>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-navy-700">
           <li>Chatbot and voice-assistant disclosure notices, matched to how your system actually interacts with people</li>
           <li>Content-labeling templates for AI-generated text, image, audio, and video</li>

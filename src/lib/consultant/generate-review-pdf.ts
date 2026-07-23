@@ -97,10 +97,10 @@ export async function generateExpertReviewPdf(
   cursor = { page: cursor.page, y: cursor.y - 16 };
 
   const disclaimer =
-    `This review is provided by ${consultantName} and constitutes professional advice. Complyra is not liable ` +
+    `This review is provided by ${consultantName} and constitutes professional advice. Vermoncy is not liable ` +
     "for its accuracy or completeness. For disputes, contact the consultant directly. This is a documentation " +
     "preparation platform, not a law firm, and using it does not establish a legal or professional relationship " +
-    "with Complyra.";
+    "with Vermoncy.";
   cursor = ensureSpace(doc, cursor, 50);
   cursor = { page: cursor.page, y: MARGIN + 40 };
   for (const line of wrapText(disclaimer, font, 8, CONTENT_WIDTH)) {

@@ -9,8 +9,8 @@ export const metadata = constructMetadata({
 });
 
 const steps = [
-  { title: "Your clients sign up", detail: "They build their AI system inventory and generate their own risk classifications and documents inside Complyra." },
-  { title: "You review and advise", detail: "Borderline or high-stakes cases route to Complyra's expert review network, where you can weigh in with paid, structured proposals." },
+  { title: "Your clients sign up", detail: "They build their AI system inventory and generate their own risk classifications and documents inside Vermoncy." },
+  { title: "You review and advise", detail: "Borderline or high-stakes cases route to Vermoncy's expert review network, where you can weigh in with paid, structured proposals." },
   { title: "Everyone stays in sync", detail: "Documents, assessments, and audit trails live in one place — no email attachments to track." },
 ];
 
@@ -24,7 +24,7 @@ export default function ForConsultantsPage() {
         </p>
         <div className="mt-6 flex justify-center gap-3">
           <a
-            href={`mailto:${siteConfig.contact.email}?subject=Partner%20with%20Complyra`}
+            href={`mailto:${siteConfig.contact.email}?subject=Partner%20with%20Vermoncy`}
             className="rounded-md bg-accent px-6 py-3 text-sm font-medium text-white hover:bg-accent-600"
           >
             Partner with us

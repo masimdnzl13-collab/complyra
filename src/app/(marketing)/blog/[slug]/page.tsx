@@ -86,7 +86,7 @@ export default async function BlogPostPage({ params }: PageProps) {
       </div>
 
       <div className="mt-8 rounded-xl border border-navy-100 bg-navy-50 p-6 text-center">
-        <p className="text-sm font-semibold text-navy-900">See how Complyra can help you prepare</p>
+        <p className="text-sm font-semibold text-navy-900">See how Vermoncy can help you prepare</p>
         <TrackedCtaLink
           href="/risk-scan"
           label="Start your free risk scan"

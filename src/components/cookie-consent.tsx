@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import Script from "next/script";
 import Link from "next/link";
 
-const STORAGE_KEY = "complyra-cookie-consent";
+const STORAGE_KEY = "vermoncy-cookie-consent";
 type Consent = "unknown" | "accepted" | "declined";
 
 /**
  * Renders nothing until mounted (localStorage isn't available during SSR),
  * same hydration-safety pattern as CountdownCard. Analytics cookies
  * (Google Analytics) only load after explicit accept — required for GDPR,
- * since Complyra is an EU-facing product built to help other companies get
+ * since Vermoncy is an EU-facing product built to help other companies get
  * this exact kind of thing right.
  */
 export function CookieConsent({ gaMeasurementId }: { gaMeasurementId?: string }) {

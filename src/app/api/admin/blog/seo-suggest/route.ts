@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       format: zodOutputFormat(SeoSchema),
     },
     system:
-      "You are an SEO assistant for Complyra's blog, which targets SME business owners researching EU AI Act " +
+      "You are an SEO assistant for Vermoncy's blog, which targets SME business owners researching EU AI Act " +
       "compliance. Given a draft post's Markdown content and its intended primary keyword, count real occurrences " +
       "of the keyword (including close natural variants), suggest related/LSI keywords actually relevant to what " +
       "this specific draft covers, and give concrete, specific improvement suggestions — not generic SEO advice.",

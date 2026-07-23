@@ -31,7 +31,7 @@ async function sendExpertReviewEmail({ to, subject, bodyHtml, ctaLabel, ctaUrl }
         }
         <p style="color: ${brandColors.navy[500]}; font-size: 13px; line-height: 1.5; margin: 0;">
           This is a documentation preparation tool, not legal advice. Expert reviews are provided by independent
-          consultants, not Complyra.
+          consultants, not Vermoncy.
         </p>
       </div>
     `,

@@ -16,7 +16,7 @@ interface CreateConsultationCheckoutParams {
   consultantName: string;
   /** Whole-currency amount (EUR), not cents. */
   consultantFee: number;
-  /** Whole-currency amount (EUR), not cents — Complyra's commission on top. */
+  /** Whole-currency amount (EUR), not cents — Vermoncy's commission on top. */
   commission: number;
   userEmail: string;
 }

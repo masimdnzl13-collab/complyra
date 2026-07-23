@@ -98,7 +98,7 @@ export default async function AdminExpertReviewsPage() {
                 <th className="px-4 py-3">Completion rate</th>
                 <th className="px-4 py-3">Rating</th>
                 <th className="px-4 py-3">Consultant fees</th>
-                <th className="px-4 py-3">Complyra commission</th>
+                <th className="px-4 py-3">Vermoncy commission</th>
               </tr>
             </thead>
             <tbody>

@@ -71,7 +71,7 @@ Candidate Annex III category from rule-based mapping (may be none): ${annexIIICa
         format: zodOutputFormat(AssessmentSchema),
       },
       system:
-        "You are a EU AI Act risk-classification assistant inside Complyra, a compliance preparation tool. " +
+        "You are a EU AI Act risk-classification assistant inside Vermoncy, a compliance preparation tool. " +
         "This is not legal advice. Prohibited-practice and narrow-derogation cases have already been " +
         "filtered out before you're called — you are only ever classifying the remaining, genuinely " +
         "judgment-requiring case. Given a structured description of an AI system, classify it as " +

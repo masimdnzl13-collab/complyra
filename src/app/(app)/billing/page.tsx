@@ -68,7 +68,7 @@ export default async function BillingPage() {
   return (
     <div className="mx-auto max-w-4xl px-6 py-16">
       <h1 className="text-3xl font-semibold tracking-tight text-navy-900">Billing</h1>
-      <p className="mt-1 text-navy-600">Manage your Complyra plan, usage, and payment details.</p>
+      <p className="mt-1 text-navy-600">Manage your Vermoncy plan, usage, and payment details.</p>
 
       {subscription.status === "past_due" && (
         <div className="mt-6 rounded-xl border-2 border-danger bg-danger/5 p-4 text-sm text-navy-900">

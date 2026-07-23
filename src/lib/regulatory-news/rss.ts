@@ -49,7 +49,7 @@ function isHttpUrl(value: string): boolean {
  * XML; a feed this doesn't parse just yields zero items rather than throwing.
  */
 export async function fetchFeedItems(feedUrl: string): Promise<FeedItem[]> {
-  const response = await fetch(feedUrl, { headers: { "User-Agent": "ComplyraBot/1.0" } });
+  const response = await fetch(feedUrl, { headers: { "User-Agent": "VermoncyBot/1.0" } });
   if (!response.ok) {
     throw new Error(`Feed fetch failed: ${response.status}`);
   }

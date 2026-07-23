@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     tags: body.tags.map((t) => t.trim()).filter(Boolean),
     publishDate: Timestamp.fromDate(new Date(body.publishDate)),
     status: body.status,
-    authorName: body.authorName.trim() || "Complyra Team",
+    authorName: body.authorName.trim() || "Vermoncy Team",
     createdAt: now,
     updatedAt: now,
   });

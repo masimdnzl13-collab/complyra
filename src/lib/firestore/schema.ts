@@ -2,7 +2,7 @@ import type { PlanId, BlogCategory } from "@/config/site";
 
 /**
  * Single source of truth for every Firestore collection name, document
- * path, and document shape in Complyra. Nothing in this codebase should
+ * path, and document shape in Vermoncy. Nothing in this codebase should
  * spell out a collection name as a string literal elsewhere — read it from
  * `COLLECTIONS` or build the path with `firestorePaths`, so this module can
  * be lifted into other projects unchanged.
@@ -729,7 +729,7 @@ export interface MrrSnapshotDoc {
 export type BlogPostStatus = "draft" | "scheduled" | "published" | "archived";
 
 /**
- * Content-team-authored blog posts (P16) — written by the Complyra team via
+ * Content-team-authored blog posts (P16) — written by the Vermoncy team via
  * /admin/blog, not by organizations. `slug` is the document ID so lookups
  * by URL segment don't need a query. `publishDate` drives both scheduled
  * publishing (a post with status "scheduled" and a future publishDate isn't

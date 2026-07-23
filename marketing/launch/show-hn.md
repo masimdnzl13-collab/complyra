@@ -1,11 +1,11 @@
-# Show HN — Complyra
+# Show HN — Vermoncy
 
 **Target:** Tuesday or Wednesday, Sep 2–3, 2026, ~10:00 AM EST (peak HN traffic)
 **Prep:** Participate in a couple of relevant Ask HN / Show HN threads beforehand to build some visible history — don't post cold.
 
 ## Title
 
-Show HN: Complyra – We automated EU AI Act compliance for SaaS in 90 days
+Show HN: Vermoncy – We automated EU AI Act compliance for SaaS in 90 days
 
 ## Post body
 
@@ -13,7 +13,7 @@ The EU AI Act has real compliance deadlines starting August 2, 2026 (transparenc
 
 The existing options for a small team are: pay a law firm you probably can't afford, or hope nobody asks. Neither scales down to a 10-person startup.
 
-We built Complyra to close that gap. The core loop:
+We built Vermoncy to close that gap. The core loop:
 
 1. Inventory the AI systems you build, buy, or use (structured questions, ~10 min per system)
 2. Get a risk classification against the Act's four tiers, with the specific article/Annex III category cited and a plain-language justification — deterministic rules handle the clear-cut cases, Claude handles genuinely ambiguous ones
@@ -26,4 +26,4 @@ It is explicitly not legal advice — it's a documentation preparation tool, and
 
 Free tier is real (not a time-limited trial) — one AI system, one risk assessment. Happy to answer anything about the regulation, the architecture, or why we made specific product calls.
 
-Link: https://complyra.io
+Link: https://vermoncy.io

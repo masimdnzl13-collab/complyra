@@ -60,7 +60,7 @@ Decision point assessed: ${assessment.decisionPoint}
         format: zodOutputFormat(sectionSchema),
       },
       system:
-        `You are drafting a "${template.label}" document for Complyra, an EU AI Act compliance ` +
+        `You are drafting a "${template.label}" document for Vermoncy, an EU AI Act compliance ` +
         "preparation tool. This document is not legal advice, and generating it does not create a legal " +
         "or professional relationship — do not claim otherwise anywhere in the text. Write each section " +
         "professionally and specifically to the system described, not generically. Base every claim on " +

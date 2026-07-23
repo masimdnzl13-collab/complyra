@@ -74,14 +74,14 @@ export default async function ReportPage({ params }: ReportPageProps) {
       <div className="mt-12 rounded-xl border border-navy-100 bg-navy-900 p-8 text-center text-white">
         <h2 className="text-lg font-semibold">Turn this into your compliance file</h2>
         <p className="mt-2 text-sm text-navy-200">
-          Complyra generates the documentation each of these obligations requires, and keeps it
+          Vermoncy generates the documentation each of these obligations requires, and keeps it
           current as your AI systems change.
         </p>
         <Link
           href="/register"
           className="mt-5 inline-block rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-600"
         >
-          Get started with Complyra
+          Get started with Vermoncy
         </Link>
       </div>
     </div>

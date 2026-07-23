@@ -40,7 +40,7 @@ export default async function ConsultantInvitePage({ params }: InvitePageProps) 
     const messages: Record<"invalid" | "used" | "expired", string> = {
       invalid: "This invite link is invalid.",
       used: "This invite has already been used.",
-      expired: "This invite link has expired. Ask your Complyra contact to send a new one.",
+      expired: "This invite link has expired. Ask your Vermoncy contact to send a new one.",
     };
     return (
       <div>

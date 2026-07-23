@@ -11,7 +11,7 @@ function client() {
 }
 
 const SYSTEM_PREAMBLE =
-  "You write short, plain-language EU AI Act Article 50 compliance texts for Complyra, a compliance " +
+  "You write short, plain-language EU AI Act Article 50 compliance texts for Vermoncy, a compliance " +
   "preparation tool. These texts are not legal advice, and producing them does not create a legal or " +
   "professional relationship. Be direct and specific — do not pad with caveats beyond what's asked for.";
 

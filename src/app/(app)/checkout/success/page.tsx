@@ -31,7 +31,7 @@ export default async function CheckoutSuccessPage() {
 
       <h1 className="mt-6 text-2xl font-semibold text-navy-900">Payment successful</h1>
       <p className="mt-2 text-navy-600">
-        {plan ? `Welcome to Complyra ${plan.name}.` : "Your subscription is now active."} A confirmation email is on
+        {plan ? `Welcome to Vermoncy ${plan.name}.` : "Your subscription is now active."} A confirmation email is on
         its way to {user.email}.
       </p>
 

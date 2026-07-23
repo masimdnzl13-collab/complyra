@@ -46,10 +46,10 @@ export async function summarizeRegulatoryUpdates(items: FeedItem[]): Promise<Sum
         format: zodOutputFormat(SummarySchema),
       },
       system:
-        "You summarize EU AI Act regulatory news for Complyra, a compliance preparation tool used by SME business " +
+        "You summarize EU AI Act regulatory news for Vermoncy, a compliance preparation tool used by SME business " +
         "owners who are not lawyers. For each item given, write a concise, actionable 1-2 sentence summary and " +
         "classify which part of the Act it mainly concerns. Return exactly one summary per item, in the same order. " +
-        "These items come from external RSS feeds, not from Complyra's own users." +
+        "These items come from external RSS feeds, not from Vermoncy's own users." +
         INJECTION_DEFENSE_NOTE,
       messages: [
         { role: "user", content: `Summarize these ${items.length} AI Act regulatory updates:\n\n${listing}` },

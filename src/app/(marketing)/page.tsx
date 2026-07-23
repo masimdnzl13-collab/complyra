@@ -78,12 +78,12 @@ const faqs = [
       "No. Inventory and transparency obligations already apply on their own timeline, independent of the high-risk deadline. Waiting only compresses the work later.",
   },
   {
-    question: "Does Complyra give legal advice?",
+    question: "Does Vermoncy give legal advice?",
     answer:
-      "No. Complyra is a documentation preparation tool, not a source of legal advice, and using it doesn't create a legal or professional relationship. See the disclaimer at the bottom of every page.",
+      "No. Vermoncy is a documentation preparation tool, not a source of legal advice, and using it doesn't create a legal or professional relationship. See the disclaimer at the bottom of every page.",
   },
   {
-    question: "What documents does Complyra actually produce?",
+    question: "What documents does Vermoncy actually produce?",
     answer:
       "Risk classification reports, technical documentation, conformity declarations, instructions for use, and Article 50 transparency notices — scoped to what your systems' risk tier requires.",
   },

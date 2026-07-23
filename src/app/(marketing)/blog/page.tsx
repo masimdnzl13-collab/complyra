@@ -5,7 +5,7 @@ import { listPublishedPosts } from "@/lib/blog/queries";
 
 export const metadata = constructMetadata({
   title: "Blog",
-  description: "EU AI Act compliance guides, deadline breakdowns, and product updates from Complyra.",
+  description: "EU AI Act compliance guides, deadline breakdowns, and product updates from Vermoncy.",
   path: "/blog",
 });
 

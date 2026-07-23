@@ -61,7 +61,7 @@ export default function HighRiskAiSystemsPage() {
       </div>
 
       <div className="mt-12">
-        <h2 className="text-lg font-semibold text-navy-900">What Complyra covers</h2>
+        <h2 className="text-lg font-semibold text-navy-900">What Vermoncy covers</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {modules.map((m) => (
             <div key={m.title} className="rounded-xl border border-navy-100 bg-navy-50 p-5">

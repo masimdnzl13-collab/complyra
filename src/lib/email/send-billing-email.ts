@@ -51,7 +51,7 @@ async function sendBillingEmail({ to, subject, bodyHtml, ctaLabel, ctaUrl, unsub
 export async function sendWelcomeToPaidPlanEmail(params: { to: string; planName: string; nextBillingDate: string }) {
   await sendBillingEmail({
     to: params.to,
-    subject: `Welcome to Complyra ${params.planName}!`,
+    subject: `Welcome to Vermoncy ${params.planName}!`,
     bodyHtml: `You now have access to everything on the ${params.planName} plan. Your next billing date: ${params.nextBillingDate}.`,
     ctaLabel: "Go to dashboard",
     ctaUrl: new URL("/dashboard", siteConfig.url).toString(),
@@ -61,7 +61,7 @@ export async function sendWelcomeToPaidPlanEmail(params: { to: string; planName:
 export async function sendPaymentFailedEmail(params: { to: string; updatePaymentUrl: string }) {
   await sendBillingEmail({
     to: params.to,
-    subject: "Your Complyra subscription payment couldn't be processed",
+    subject: "Your Vermoncy subscription payment couldn't be processed",
     bodyHtml:
       "Your subscription payment couldn't be processed. Update your payment method within 3 days to keep your access.",
     ctaLabel: "Update payment method",
@@ -79,8 +79,8 @@ export async function sendRenewalReminderEmail(params: {
 }) {
   await sendBillingEmail({
     to: params.to,
-    subject: "Your Complyra subscription renews soon",
-    bodyHtml: `Your Complyra ${params.planName} subscription renews on ${params.renewsAt}. You'll be charged ${params.price}.${
+    subject: "Your Vermoncy subscription renews soon",
+    bodyHtml: `Your Vermoncy ${params.planName} subscription renews on ${params.renewsAt}. You'll be charged ${params.price}.${
       params.isExpertReviewPlan ? " Your expert review request limit resets on renewal day." : ""
     }`,
     ctaLabel: "Manage billing",
@@ -92,7 +92,7 @@ export async function sendRenewalReminderEmail(params: {
 export async function sendCancellationConfirmationEmail(params: { to: string }) {
   await sendBillingEmail({
     to: params.to,
-    subject: "Your Complyra subscription has been cancelled",
+    subject: "Your Vermoncy subscription has been cancelled",
     bodyHtml: "Your subscription has been cancelled. You can resubscribe anytime — your data is kept as-is.",
     ctaLabel: "Resubscribe",
     ctaUrl: new URL("/billing", siteConfig.url).toString(),
@@ -102,7 +102,7 @@ export async function sendCancellationConfirmationEmail(params: { to: string }) 
 export async function sendTrialEndingEmail(params: { to: string; orgId: string; planName: string }) {
   await sendBillingEmail({
     to: params.to,
-    subject: "Your Complyra trial ends in 3 days",
+    subject: "Your Vermoncy trial ends in 3 days",
     bodyHtml: `Your 14-day ${params.planName} trial ends in 3 days. Add a payment method to continue without interruption. After your trial ends, you'll be on the Free plan.`,
     ctaLabel: "Add payment method",
     ctaUrl: new URL("/billing", siteConfig.url).toString(),

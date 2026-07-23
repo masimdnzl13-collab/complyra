@@ -1,27 +1,27 @@
 /**
- * Single source of truth for every brand and product constant in Complyra.
+ * Single source of truth for every brand and product constant in Vermoncy.
  * Nothing in this codebase should hardcode a name, price, color, link, or
  * legal string directly — it must be read from here, so this module can be
  * lifted into other projects unchanged.
  */
 
 export const siteConfig = {
-  name: "Complyra",
-  legalName: "Complyra",
+  name: "Vermoncy",
+  legalName: "Vermoncy",
   tagline: "EU AI Act compliance, automated",
   description:
-    "Complyra helps teams generate and manage the documentation required for EU AI Act compliance — risk classification, technical documentation, and conformity records, without the manual paperwork.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://complyra.io",
+    "Vermoncy helps teams generate and manage the documentation required for EU AI Act compliance — risk classification, technical documentation, and conformity records, without the manual paperwork.",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://vermoncy.io",
   locale: "en",
   language: "en-US",
   contact: {
-    email: "hello@complyra.io",
-    supportEmail: "support@complyra.io",
+    email: "hello@vermoncy.io",
+    supportEmail: "support@vermoncy.io",
   },
   social: {
-    twitter: "https://twitter.com/complyra",
-    linkedin: "https://www.linkedin.com/company/complyra",
-    github: "https://github.com/complyra",
+    twitter: "https://twitter.com/vermoncy",
+    linkedin: "https://www.linkedin.com/company/vermoncy",
+    github: "https://github.com/vermoncy",
   },
 } as const;
 
@@ -81,8 +81,8 @@ export function planHasExpertReviewAccess(planId: PlanId): boolean {
 }
 
 /**
- * Complyra's cut of every consultant payment (P13). Consultant honoraria are
- * paid through Complyra (Stripe), not directly — this is the platform fee
+ * Vermoncy's cut of every consultant payment (P13). Consultant honoraria are
+ * paid through Vermoncy (Stripe), not directly — this is the platform fee
  * added on top of the consultant's own rate at checkout.
  */
 export const consultantCommissionRate = 0.18;
@@ -143,7 +143,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     priceYearly: 0,
     currency: "EUR",
     billingPeriod: "month",
-    description: "Explore Complyra with a single project and limited exports.",
+    description: "Explore Vermoncy with a single project and limited exports.",
     trialDays: null,
     lemonSqueezy: { productId: null, variantIdMonthly: null, variantIdYearly: null },
     targetUser: "Solo founders and consultants exploring their obligations before committing.",
@@ -154,7 +154,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     aiLiteracySeats: 5,
     teamMembers: 1,
     apiAccess: false,
-    modules: ["AI system inventory (1 system)", "Risk classification preview", "Powered by Complyra badge"],
+    modules: ["AI system inventory (1 system)", "Risk classification preview", "Powered by Vermoncy badge"],
   },
   {
     id: "starter",
@@ -389,8 +389,8 @@ export const blogCategories: readonly { id: BlogCategory; label: string }[] = [
 
 export const legalConfig = {
   disclaimer:
-    "Complyra is a documentation preparation tool. It does not constitute legal advice, and using it does not establish a legal or professional relationship. Consult a qualified professional for advice on your specific compliance obligations under the EU AI Act.",
-  copyrightHolder: "Complyra",
+    "Vermoncy is a documentation preparation tool. It does not constitute legal advice, and using it does not establish a legal or professional relationship. Consult a qualified professional for advice on your specific compliance obligations under the EU AI Act.",
+  copyrightHolder: "Vermoncy",
 } as const;
 
 export function formatPlanPrice(plan: PricingPlan): string {

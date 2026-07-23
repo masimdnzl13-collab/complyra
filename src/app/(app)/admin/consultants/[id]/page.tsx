@@ -77,7 +77,7 @@ export default async function AdminConsultantDetailPage({ params }: PageProps) {
           <Field label="Cases completed">{consultant.casesCompleted}</Field>
           <Field label="Avg. turnaround">{avgTurnaroundDays !== null ? `${avgTurnaroundDays.toFixed(1)} days` : "—"}</Field>
           <Field label="Revenue (consultant fees, all-time)">€{totalFees.toFixed(0)}</Field>
-          <Field label="Complyra commission (all-time)">€{totalCommission.toFixed(0)}</Field>
+          <Field label="Vermoncy commission (all-time)">€{totalCommission.toFixed(0)}</Field>
           <div className="pt-2">
             <p className="mb-1 text-xs text-navy-500">Rating distribution ({consultant.ratingCount} ratings, avg {consultant.ratingAverage.toFixed(1)})</p>
             {ratingDistribution.map(({ stars, count }) => (

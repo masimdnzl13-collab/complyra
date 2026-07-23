@@ -47,7 +47,7 @@ export default function ExportCompliancePage() {
       </div>
 
       <div className="mt-12 rounded-xl border border-navy-100 bg-navy-50 p-6">
-        <h2 className="text-sm font-semibold text-navy-900">What Complyra does for non-EU companies</h2>
+        <h2 className="text-sm font-semibold text-navy-900">What Vermoncy does for non-EU companies</h2>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-navy-700">
           <li>A short scope check to confirm whether the Act applies to your specific product and market</li>
           <li>Risk classification against the same rules an EU-based company would use</li>

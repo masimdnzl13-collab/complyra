@@ -44,7 +44,7 @@ export async function GET() {
   return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv",
-      "Content-Disposition": `attachment; filename="complyra-subscriptions-${new Date().toISOString().slice(0, 10)}.csv"`,
+      "Content-Disposition": `attachment; filename="vermoncy-subscriptions-${new Date().toISOString().slice(0, 10)}.csv"`,
     },
   });
 }

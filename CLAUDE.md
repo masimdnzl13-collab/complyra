@@ -1,6 +1,6 @@
-# Complyra
+# Vermoncy
 
-Complyra is a SaaS platform that generates EU AI Act compliance documentation.
+Vermoncy is a SaaS platform that generates EU AI Act compliance documentation.
 Next.js 14 App Router, TypeScript, Tailwind CSS, Firebase (Auth + Firestore),
 deployed on Vercel.
 
