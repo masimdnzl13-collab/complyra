@@ -13,7 +13,7 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
 function TimeUnit({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex flex-col items-center rounded-lg bg-navy-900 px-2 py-3 text-white">
-      <span className="text-2xl font-semibold tabular-nums sm:text-3xl">
+      <span className="font-mono text-2xl font-semibold tabular-nums sm:text-3xl">
         {String(value).padStart(2, "0")}
       </span>
       <span className="mt-1 text-[10px] font-medium uppercase tracking-wide text-navy-300">
@@ -73,7 +73,7 @@ export function CountdownCard({ deadline }: { deadline: RegulationDeadline }) {
         )}
       </div>
 
-      <p className="mt-4 text-xs text-navy-400">{deadline.legalReference} · EU AI Act</p>
+      <p className="mt-4 font-mono text-xs text-navy-400">{deadline.legalReference} · EU AI Act</p>
     </div>
   );
 }

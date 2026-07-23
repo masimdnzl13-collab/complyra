@@ -12,8 +12,102 @@ body {
   background: var(--background);
 }
 
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-space-grotesk), var(--font-inter), sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+}
+
+/*
+ * Hero aurora background (src/components/marketing/hero-aurora.tsx).
+ * Colors are set inline by that component, sourced from brandColors in
+ * site.ts — nothing here hardcodes a color, only movement.
+ */
+.hero-aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-aurora__blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(100px);
+  opacity: 0.5;
+  will-change: transform;
+}
+
+.hero-aurora__blob--a {
+  top: -15%;
+  left: 5%;
+  animation: hero-aurora-a 26s ease-in-out infinite;
+}
+
+.hero-aurora__blob--b {
+  bottom: -20%;
+  left: 30%;
+  animation: hero-aurora-b 22s ease-in-out infinite;
+}
+
+.hero-aurora__blob--c {
+  top: 10%;
+  right: -10%;
+  animation: hero-aurora-c 30s ease-in-out infinite;
+}
+
+@keyframes hero-aurora-a {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(8%, 10%) scale(1.15);
+  }
+}
+
+@keyframes hero-aurora-b {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-10%, -6%) scale(0.9);
+  }
+}
+
+@keyframes hero-aurora-c {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-8%, 8%) scale(1.1);
+  }
+}
+
+/* Users who asked the OS to reduce motion never see the drift. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-aurora__blob {
+    animation: none;
+  }
+}
+
+/* Mobile: keep the color wash, drop the animation and cut blur cost. */
+@media (max-width: 640px) {
+  .hero-aurora__blob {
+    animation: none;
+    filter: blur(60px);
+    opacity: 0.35;
   }
 }

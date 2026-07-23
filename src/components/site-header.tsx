@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { siteConfig } from "@/config/site";
+import { Logo } from "@/components/logo";
 
 const navLinks = [
   { href: "/pricing", label: "Pricing" },
@@ -11,9 +11,7 @@ export function SiteHeader() {
   return (
     <header className="border-b border-navy-100 bg-surface">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="text-lg font-semibold tracking-tight text-navy-900">
-          {siteConfig.name}
-        </Link>
+        <Logo />
         <nav className="hidden items-center gap-8 sm:flex">
           {navLinks.map((link) => (
             <Link

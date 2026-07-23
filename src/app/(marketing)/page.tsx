@@ -3,6 +3,7 @@ import { constructMetadata } from "@/lib/construct-metadata";
 import { siteConfig, regulationDeadlines } from "@/config/site";
 import { CountdownCard } from "@/components/marketing/countdown-card";
 import { NewsletterForm } from "@/components/marketing/newsletter-form";
+import { HeroAurora } from "@/components/marketing/hero-aurora";
 
 export const metadata = constructMetadata({ path: "/" });
 
@@ -51,6 +52,14 @@ const features = [
   },
 ] as const;
 
+const legalReferenceChips = [
+  "Art. 5 — Prohibited Practices",
+  "Art. 6(3) — Derogation",
+  "Art. 50 — Transparency",
+  "Annex III — High-Risk",
+  "Art. 4 — AI Literacy",
+] as const;
+
 const audiences = [
   "SaaS companies embedding AI features into their product",
   "E-commerce businesses using AI for recommendations, pricing, or support",
@@ -96,32 +105,49 @@ export default function HomePage() {
       {/* eslint-disable-next-line react/no-danger */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
 
-      {/* Hero */}
-      <section className="mx-auto flex max-w-4xl flex-col items-center px-6 py-24 text-center">
-        <p className="rounded-full bg-navy-50 px-4 py-1 text-sm font-medium text-navy-600">
-          {siteConfig.tagline}
-        </p>
-        <h1 className="mt-6 text-4xl font-semibold tracking-tight text-navy-900 sm:text-5xl">
-          Your EU AI Act compliance file, ready in hours — not months.
-        </h1>
-        <p className="mt-4 max-w-2xl text-lg text-navy-600">
-          Built for small and mid-sized companies operating in the EU, or selling into it, who
-          need an AI system inventory, risk classification, and compliance documentation without
-          hiring outside counsel.
-        </p>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Link
-            href="/risk-scan"
-            className="rounded-md bg-accent px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-600"
-          >
-            Start your free risk scan
-          </Link>
-          <Link
-            href="/pricing"
-            className="rounded-md border border-navy-200 px-6 py-3 text-sm font-medium text-navy-900 transition-colors hover:bg-navy-50"
-          >
-            View pricing
-          </Link>
+      {/* Hero — dark "regulation sky" backdrop, content sections below return to white */}
+      <section className="relative overflow-hidden bg-ink px-6 py-24 text-center">
+        <HeroAurora />
+        <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center">
+          <p className="rounded-full bg-white/10 px-4 py-1 text-sm font-medium text-white/90 backdrop-blur-sm">
+            {siteConfig.tagline}
+          </p>
+          <h1 className="mt-6 text-4xl font-bold tracking-tight text-white sm:text-5xl">
+            Your EU AI Act compliance file, ready in hours — not months.
+          </h1>
+          <p className="mt-4 max-w-2xl text-lg text-navy-200">
+            Built for small and mid-sized companies operating in the EU, or selling into it, who
+            need an AI system inventory, risk classification, and compliance documentation without
+            hiring outside counsel.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/risk-scan"
+              className="rounded-md bg-warning px-6 py-3 text-sm font-semibold text-navy-900 transition-colors hover:bg-warning/90"
+            >
+              Start your free risk scan
+            </Link>
+            <Link
+              href="/pricing"
+              className="rounded-md border border-white/20 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-white/10"
+            >
+              View pricing
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Legal reference strip — fills the hero-to-content transition with a quiet signal of regulatory depth */}
+      <section className="border-b border-navy-100 bg-white py-6">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-3 px-6">
+          {legalReferenceChips.map((chip) => (
+            <span
+              key={chip}
+              className="rounded-lg border border-navy-100 bg-navy-50 px-3 py-1.5 font-mono text-xs text-navy-600"
+            >
+              {chip}
+            </span>
+          ))}
         </div>
       </section>
 

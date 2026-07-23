@@ -1,4 +1,4 @@
-import { Inter } from "next/font/google";
+import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { siteConfig } from "@/config/site";
@@ -10,6 +10,18 @@ const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+});
+
+/** Display face for headings only (see globals.css h1/h2/h3 base rule) — body text stays on Inter. */
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+});
+
+/** Mono face for "precision data": countdown digits, legal article references, system IDs. */
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
 });
 
 export const metadata = constructMetadata();
@@ -27,7 +39,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang={siteConfig.locale} className={inter.variable}>
+    <html
+      lang={siteConfig.locale}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
+    >
       <body className="flex min-h-screen flex-col font-sans antialiased">
         <div className="flex-1">{children}</div>
         <LegalDisclaimerBanner />

@@ -17,13 +17,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!user) redirect("/login");
 
   const isPlatformAdmin = isSuperAdminUid(user.uid);
+  let organizationName: string | undefined;
 
   if (user.userDoc) {
     const orgSnap = await getAdminFirestore().doc(firestorePaths.organization(user.userDoc.organizationId)).get();
     const organization = orgSnap.data() as OrganizationDoc | undefined;
+    organizationName = organization?.companyName;
     if (organization?.suspended) {
       return (
-        <AppShell email={user.email} isOwner={false} isPlatformAdmin={isPlatformAdmin}>
+        <AppShell
+          email={user.email}
+          isOwner={false}
+          isPlatformAdmin={isPlatformAdmin}
+          organizationName={organizationName}
+          role={user.userDoc.role}
+        >
           <div className="mx-auto max-w-md px-6 py-24 text-center">
             <h1 className="text-xl font-semibold text-navy-900">Account suspended</h1>
             <p className="mt-2 text-sm text-navy-600">
@@ -36,7 +44,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <AppShell email={user.email} isOwner={user.userDoc?.role === "owner"} isPlatformAdmin={isPlatformAdmin}>
+    <AppShell
+      email={user.email}
+      isOwner={user.userDoc?.role === "owner"}
+      isPlatformAdmin={isPlatformAdmin}
+      organizationName={organizationName}
+      role={user.userDoc?.role}
+    >
       {children}
     </AppShell>
   );

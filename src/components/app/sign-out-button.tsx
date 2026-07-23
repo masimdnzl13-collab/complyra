@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 
-export function SignOutButton() {
+const DEFAULT_CLASS_NAME = "text-sm font-medium text-navy-600 hover:text-navy-900 disabled:opacity-50";
+
+export function SignOutButton({ className = DEFAULT_CLASS_NAME }: { className?: string }) {
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
@@ -18,11 +20,7 @@ export function SignOutButton() {
   }
 
   return (
-    <button
-      onClick={handleSignOut}
-      disabled={isSigningOut}
-      className="text-sm font-medium text-navy-600 hover:text-navy-900 disabled:opacity-50"
-    >
+    <button onClick={handleSignOut} disabled={isSigningOut} className={className}>
       {isSigningOut ? "Signing out…" : "Sign out"}
     </button>
   );
