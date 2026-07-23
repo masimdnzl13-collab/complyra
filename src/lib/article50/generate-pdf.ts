@@ -2,12 +2,12 @@ import "server-only";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import type { Article50Artifact } from "@/lib/firestore/schema";
 import { LANGUAGE_LABELS, MODEL_SOURCE_LABELS, WATERMARK_STANDARD_NOTE } from "./content";
-import type {
-  ChatbotDisclosureData,
-  ContentLabelingData,
-  DeepfakeDisclosureData,
-  Language,
-  WatermarkChecklistData,
+import {
+  ChatbotDisclosureDataSchema,
+  ContentLabelingDataSchema,
+  DeepfakeDisclosureDataSchema,
+  WatermarkChecklistDataSchema,
+  type Language,
 } from "./types";
 import { regulationDeadlines } from "@/config/site";
 
@@ -83,13 +83,13 @@ export async function generateArticle50Pdf(artifact: Article50Artifact): Promise
   cursor = { page: cursor.page, y: cursor.y - 28 };
 
   if (artifact.area === "chatbot_disclosure") {
-    const data = artifact.data as unknown as ChatbotDisclosureData;
+    const data = ChatbotDisclosureDataSchema.parse(artifact.data);
     for (const lang of data.languages) {
       cursor = drawHeading(doc, cursor, LANGUAGE_LABELS[lang as Language] ?? lang, bold, 12);
       cursor = drawParagraph(doc, cursor, data.texts[lang as Language] ?? "", font, 11);
     }
   } else if (artifact.area === "content_labeling") {
-    const data = artifact.data as unknown as ContentLabelingData;
+    const data = ContentLabelingDataSchema.parse(artifact.data);
     cursor = drawHeading(doc, cursor, "Label text", bold, 12);
     cursor = drawParagraph(doc, cursor, data.labelText, font, 11);
     cursor = drawHeading(doc, cursor, "Implementation checklist", bold, 12);
@@ -97,7 +97,7 @@ export async function generateArticle50Pdf(artifact: Article50Artifact): Promise
       cursor = drawParagraph(doc, cursor, `${item.checked ? "[x]" : "[ ]"} ${item.label}`, font, 10.5);
     }
   } else if (artifact.area === "watermark_checklist") {
-    const data = artifact.data as unknown as WatermarkChecklistData;
+    const data = WatermarkChecklistDataSchema.parse(artifact.data);
     const deadline = regulationDeadlines.find((d) => d.id === "watermarking");
     cursor = drawParagraph(
       doc,
@@ -120,7 +120,7 @@ export async function generateArticle50Pdf(artifact: Article50Artifact): Promise
     cursor = drawHeading(doc, cursor, "Reference standard", bold, 12);
     cursor = drawParagraph(doc, cursor, WATERMARK_STANDARD_NOTE, font, 10);
   } else if (artifact.area === "deepfake_disclosure") {
-    const data = artifact.data as unknown as DeepfakeDisclosureData;
+    const data = DeepfakeDisclosureDataSchema.parse(artifact.data);
     if (data.deepfakeText) {
       cursor = drawHeading(doc, cursor, "Deepfake disclosure", bold, 12);
       cursor = drawParagraph(doc, cursor, data.deepfakeText, font, 11);

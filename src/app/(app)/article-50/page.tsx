@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths, type AiSystemDoc, type Article50Artifact } from "@/lib/firestore/schema";
-import type { WatermarkChecklistData } from "@/lib/article50/types";
+import { WatermarkChecklistDataSchema } from "@/lib/article50/types";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { regulationDeadlines } from "@/config/site";
 import { DeadlineCountdown } from "@/components/article50/deadline-countdown";
@@ -38,7 +38,9 @@ export default async function Article50Page() {
 
   const labelingArtifact = artifacts.find((a) => a.area === "content_labeling");
   const watermarkArtifact = artifacts.find((a) => a.area === "watermark_checklist");
-  const watermarkData = watermarkArtifact?.data as unknown as WatermarkChecklistData | undefined;
+  const watermarkData = watermarkArtifact
+    ? WatermarkChecklistDataSchema.safeParse(watermarkArtifact.data).data
+    : undefined;
   const watermarkReady =
     !!watermarkData &&
     watermarkData.watermarkCapability !== "no" &&

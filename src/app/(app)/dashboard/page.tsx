@@ -19,6 +19,7 @@ import { InviteTeammateForm } from "@/components/team/invite-teammate-form";
 import { ScoreGauge } from "@/components/dashboard/score-gauge";
 import { DualTimeline } from "@/components/dashboard/dual-timeline";
 import { calculateComplianceScore, getScoreOpportunities } from "@/lib/dashboard/score";
+import { WatermarkChecklistDataSchema } from "@/lib/article50/types";
 import { buildComplianceChecklist, type ChecklistSeverity } from "@/lib/dashboard/checklist";
 
 export const metadata = constructMetadata({
@@ -109,9 +110,9 @@ export default async function DashboardPage() {
   const chatbotReady = chatbotCandidateSystems.length === 0 || chatbotCandidateSystems.every((s) => chatbotArtifactSystemIds.has(s.id));
   const labelingReady = article50Docs.some((a) => a.area === "content_labeling");
   const watermarkArtifact = article50Docs.find((a) => a.area === "watermark_checklist");
-  const watermarkData = watermarkArtifact?.data as
-    | { watermarkCapability: string; vendorCommitmentDocumented: boolean; standardSelected: boolean; outputFilesVerified: boolean }
-    | undefined;
+  const watermarkData = watermarkArtifact
+    ? WatermarkChecklistDataSchema.safeParse(watermarkArtifact.data).data
+    : undefined;
   const watermarkReady =
     !!watermarkData &&
     watermarkData.watermarkCapability !== "no" &&

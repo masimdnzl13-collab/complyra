@@ -4,11 +4,14 @@ import { getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths, type Article50Artifact } from "@/lib/firestore/schema";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { LANGUAGE_LABELS } from "@/lib/article50/content";
-import type {
-  ChatbotDisclosureData,
-  ContentLabelingData,
-  DeepfakeDisclosureData,
-  Language,
+import {
+  ChatbotDisclosureDataSchema,
+  ContentLabelingDataSchema,
+  DeepfakeDisclosureDataSchema,
+  type ChatbotDisclosureData,
+  type ContentLabelingData,
+  type DeepfakeDisclosureData,
+  type Language,
 } from "@/lib/article50/types";
 import { ApproveButton } from "@/components/article50/approve-button";
 
@@ -59,13 +62,13 @@ export default async function Article50ArtifactPage({ params }: PageProps) {
 
       <div className="mt-8 space-y-6">
         {artifact.area === "chatbot_disclosure" && (
-          <ChatbotDisclosureView data={artifact.data as unknown as ChatbotDisclosureData} />
+          <ChatbotDisclosureView data={ChatbotDisclosureDataSchema.parse(artifact.data)} />
         )}
         {artifact.area === "content_labeling" && (
-          <ContentLabelingView data={artifact.data as unknown as ContentLabelingData} />
+          <ContentLabelingView data={ContentLabelingDataSchema.parse(artifact.data)} />
         )}
         {artifact.area === "deepfake_disclosure" && (
-          <DeepfakeView data={artifact.data as unknown as DeepfakeDisclosureData} />
+          <DeepfakeView data={DeepfakeDisclosureDataSchema.parse(artifact.data)} />
         )}
       </div>
     </div>

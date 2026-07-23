@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths, type LeadDoc } from "@/lib/firestore/schema";
-import type { ScanResult } from "@/lib/risk-scan/types";
+import { ScanResultSchema } from "@/lib/risk-scan/types";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { FindingCard } from "@/components/risk-scan/finding-card";
 
@@ -24,8 +24,9 @@ async function loadLead(id: string): Promise<LeadDoc | null> {
 
 export default async function ReportPage({ params }: ReportPageProps) {
   const lead = await loadLead(params.id);
+  const parsedResult = lead ? ScanResultSchema.safeParse(lead.result) : null;
 
-  if (!lead) {
+  if (!lead || !parsedResult?.success) {
     return (
       <div className="mx-auto max-w-lg px-6 py-24 text-center">
         <h1 className="text-2xl font-semibold text-navy-900">Report not found</h1>
@@ -42,7 +43,7 @@ export default async function ReportPage({ params }: ReportPageProps) {
     );
   }
 
-  const result = lead.result as unknown as ScanResult;
+  const result = parsedResult.data;
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
