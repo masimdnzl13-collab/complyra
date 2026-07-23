@@ -12,6 +12,15 @@ body {
   background: var(--background);
 }
 
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

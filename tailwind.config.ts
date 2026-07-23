@@ -22,6 +22,15 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-inter)"],
       },
+      spacing: {
+        section: "120px",
+      },
+      borderRadius: {
+        "card-lg": "20px",
+      },
+      boxShadow: {
+        premium: "0 1px 2px rgba(10, 22, 38, 0.04), 0 8px 24px rgba(10, 22, 38, 0.06)",
+      },
     },
   },
   plugins: [require("@tailwindcss/typography")],

@@ -1,8 +1,19 @@
-import Link from "next/link";
+import {
+  FileText,
+  GraduationCap,
+  LayoutDashboard,
+  ListChecks,
+  MessageSquareText,
+  ShieldCheck,
+  type LucideIcon,
+} from "lucide-react";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { siteConfig, regulationDeadlines } from "@/config/site";
 import { CountdownCard } from "@/components/marketing/countdown-card";
 import { NewsletterForm } from "@/components/marketing/newsletter-form";
+import { ProductPreview } from "@/components/marketing/product-preview";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 export const metadata = constructMetadata({ path: "/" });
 
@@ -24,32 +35,38 @@ const steps = [
   },
 ] as const;
 
-const features = [
+const features: { icon: LucideIcon; title: string; description: string }[] = [
   {
+    icon: ListChecks,
     title: "AI system inventory",
     description: "A single, structured record of every AI system in use across your organization.",
   },
   {
+    icon: ShieldCheck,
     title: "Risk classification",
     description: "Each system placed into its EU AI Act risk tier, with the reasoning and article behind it.",
   },
   {
+    icon: FileText,
     title: "Document generation",
     description: "Technical documentation, conformity declarations, and instructions for use, drafted from your inventory.",
   },
   {
+    icon: MessageSquareText,
     title: "Article 50 transparency pack",
     description: "Chatbot disclosures and AI-content labeling notices, ready for the systems that need them.",
   },
   {
+    icon: GraduationCap,
     title: "Staff AI literacy training",
     description: "Track completed training records to meet the Act's AI literacy obligation for staff.",
   },
   {
+    icon: LayoutDashboard,
     title: "Compliance dashboard",
     description: "One view of every system, its risk tier, and the status of its required documentation.",
   },
-] as const;
+];
 
 const audiences = [
   "SaaS companies embedding AI features into their product",
@@ -97,32 +114,29 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
 
       {/* Hero */}
-      <section className="mx-auto flex max-w-4xl flex-col items-center px-6 py-24 text-center">
-        <p className="rounded-full bg-navy-50 px-4 py-1 text-sm font-medium text-navy-600">
-          {siteConfig.tagline}
-        </p>
-        <h1 className="mt-6 text-4xl font-semibold tracking-tight text-navy-900 sm:text-5xl">
-          Your EU AI Act compliance file, ready in hours — not months.
-        </h1>
-        <p className="mt-4 max-w-2xl text-lg text-navy-600">
-          Built for small and mid-sized companies operating in the EU, or selling into it, who
-          need an AI system inventory, risk classification, and compliance documentation without
-          hiring outside counsel.
-        </p>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Link
-            href="/risk-scan"
-            className="rounded-md bg-accent px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-600"
-          >
-            Start your free risk scan
-          </Link>
-          <Link
-            href="/pricing"
-            className="rounded-md border border-navy-200 px-6 py-3 text-sm font-medium text-navy-900 transition-colors hover:bg-navy-50"
-          >
-            View pricing
-          </Link>
+      <section className="mx-auto grid max-w-6xl items-center gap-16 px-6 py-20 lg:grid-cols-2 lg:py-28">
+        <div>
+          <p className="inline-block rounded-full bg-navy-50 px-4 py-1 text-sm font-medium text-navy-600">
+            {siteConfig.tagline}
+          </p>
+          <h1 className="mt-6 max-w-xl text-4xl font-bold tracking-tight text-navy-900 sm:text-5xl">
+            Your EU AI Act compliance file, ready in hours — not months.
+          </h1>
+          <p className="mt-5 max-w-md text-lg leading-[1.7] text-navy-600">
+            Built for small and mid-sized companies operating in the EU, or selling into it, who
+            need an AI system inventory, risk classification, and compliance documentation
+            without hiring outside counsel.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button href="/risk-scan" variant="primary">
+              Start your free risk scan
+            </Button>
+            <Button href="/pricing" variant="secondary">
+              View pricing
+            </Button>
+          </div>
         </div>
+        <ProductPreview />
       </section>
 
       {/* Countdowns */}
@@ -172,10 +186,13 @@ export default function HomePage() {
           </div>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => (
-              <div key={feature.title} className="rounded-xl border border-navy-100 bg-white p-6">
-                <h3 className="text-base font-semibold text-navy-900">{feature.title}</h3>
-                <p className="mt-2 text-sm text-navy-600">{feature.description}</p>
-              </div>
+              <Card key={feature.title}>
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+                  <feature.icon className="h-5 w-5 text-accent" strokeWidth={2} />
+                </span>
+                <h3 className="mt-4 text-base font-semibold text-navy-900">{feature.title}</h3>
+                <p className="mt-2 text-sm leading-[1.7] text-navy-600">{feature.description}</p>
+              </Card>
             ))}
           </div>
         </div>
