@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
-import { Logo } from "@/components/logo";
 
 export function SiteFooter() {
   const year = new Date().getFullYear();
@@ -10,8 +9,8 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="grid gap-8 sm:grid-cols-4">
           <div>
-            <Logo variant="light" />
-            <p className="mt-3 text-sm text-navy-300">{siteConfig.tagline}</p>
+            <p className="text-lg font-semibold text-white">{siteConfig.name}</p>
+            <p className="mt-2 text-sm text-navy-300">{siteConfig.tagline}</p>
           </div>
           <div>
             <p className="text-sm font-semibold text-white">Product</p>
