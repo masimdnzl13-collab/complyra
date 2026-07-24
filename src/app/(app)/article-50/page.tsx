@@ -67,7 +67,7 @@ export default async function Article50Page() {
     {
       title: "AI-generated content labeling",
       article: "Article 50(2)",
-      deadline: transparencyDeadline.date,
+      deadline: watermarkingDeadline.date,
       ready: !!labelingArtifact,
       subtitle: labelingArtifact ? "Labeling template ready" : "No labeling template yet",
       href: labelingArtifact ? `/article-50/artifacts/${labelingArtifact.id}` : "/article-50/content-labeling/new",

@@ -42,7 +42,11 @@ const STATUS_LABELS: Record<AiSystemDoc["status"], string> = {
   retired: "Archived",
 };
 
-export default async function AiSystemsPage() {
+interface AiSystemsPageProps {
+  searchParams: { view?: string };
+}
+
+export default async function AiSystemsPage({ searchParams }: AiSystemsPageProps) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (!user.userDoc) redirect("/onboarding");
@@ -53,13 +57,17 @@ export default async function AiSystemsPage() {
     .orderBy("createdAt", "desc")
     .get();
 
-  const systems = snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as AiSystemDoc) }));
+  const allSystems = snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as AiSystemDoc) }));
+  const showArchived = searchParams.view === "archived";
+  const activeSystems = allSystems.filter((s) => s.status !== "retired");
+  const archivedSystems = allSystems.filter((s) => s.status === "retired");
+  const systems = showArchived ? archivedSystems : activeSystems;
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-16">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-semibold tracking-tight text-navy-900">AI Systems</h1>
-        {systems.length > 0 && (
+        {allSystems.length > 0 && (
           <Link
             href="/ai-systems/new"
             className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-600"
@@ -69,13 +77,43 @@ export default async function AiSystemsPage() {
         )}
       </div>
 
+      {allSystems.length > 0 && (
+        <div className="mt-6 flex gap-2 border-b border-navy-100">
+          <Link
+            href="/ai-systems"
+            className={`border-b-2 px-1 pb-3 text-sm font-medium ${
+              !showArchived ? "border-accent text-navy-900" : "border-transparent text-navy-500 hover:text-navy-900"
+            }`}
+          >
+            Active ({activeSystems.length})
+          </Link>
+          <Link
+            href="/ai-systems?view=archived"
+            className={`border-b-2 px-1 pb-3 text-sm font-medium ${
+              showArchived ? "border-accent text-navy-900" : "border-transparent text-navy-500 hover:text-navy-900"
+            }`}
+          >
+            Archived ({archivedSystems.length})
+          </Link>
+        </div>
+      )}
+
       {systems.length === 0 ? (
-        <EmptyState
-          icon={Zap}
-          title="Your inventory is empty"
-          description="Building your AI inventory is the first, non-negotiable step toward EU AI Act compliance — everything else, from risk classification to generated documents, builds on it."
-          action={{ label: "Add your first AI system", href: "/ai-systems/new" }}
-        />
+        showArchived ? (
+          <div className="mt-10 rounded-xl border border-navy-100 bg-navy-50 p-10 text-center">
+            <h2 className="text-lg font-semibold text-navy-900">No archived systems</h2>
+            <p className="mx-auto mt-2 max-w-md text-sm text-navy-600">
+              Systems you archive stay here for your records but stop counting toward your plan&apos;s quota.
+            </p>
+          </div>
+        ) : (
+          <EmptyState
+            icon={Zap}
+            title="Your inventory is empty"
+            description="Building your AI inventory is the first, non-negotiable step toward EU AI Act compliance — everything else, from risk classification to generated documents, builds on it."
+            action={{ label: "Add your first AI system", href: "/ai-systems/new" }}
+          />
+        )
       ) : (
         <div className="mt-8 space-y-3">
           {systems.map((system) => (

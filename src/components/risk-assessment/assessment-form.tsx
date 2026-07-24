@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { AiSystemDoc, DecisionPoint, SystemDeploymentStage } from "@/lib/firestore/schema";
+import type { DecisionPoint, SystemDeploymentStage } from "@/lib/firestore/schema";
 import { trackEvent } from "@/lib/analytics/track";
 
 const DECISION_POINT_OPTIONS: { value: DecisionPoint; label: string }[] = [
@@ -25,7 +25,13 @@ const DEPLOYMENT_STAGE_OPTIONS: { value: SystemDeploymentStage; label: string }[
 const inputClass =
   "w-full rounded-md border border-navy-100 px-3 py-2 text-sm text-navy-900 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent";
 
-export function AssessmentForm({ system, systemId }: { system: AiSystemDoc; systemId: string }) {
+interface AssessmentFormSystem {
+  name: string;
+  description: string;
+  vendor: string;
+}
+
+export function AssessmentForm({ system, systemId }: { system: AssessmentFormSystem; systemId: string }) {
   const router = useRouter();
   const [decisionPoint, setDecisionPoint] = useState<DecisionPoint | "">("");
   const [deploymentStage, setDeploymentStage] = useState<SystemDeploymentStage | "">("");

@@ -13,7 +13,7 @@ export async function sendRiskReportEmail({ to, reportUrl }: SendRiskReportEmail
   // See send-invite-email.ts — Resend resolves { data: null, error } on
   // failure instead of throwing, so this must be checked explicitly.
   const { error } = await resend.emails.send({
-    from: `${siteConfig.name} <${siteConfig.contact.email}>`,
+    from: `${siteConfig.name} <${siteConfig.contact.transactionalFrom}>`,
     to,
     subject: "Your EU AI Act risk scan results",
     html: `

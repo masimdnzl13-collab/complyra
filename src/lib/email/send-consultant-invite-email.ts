@@ -10,7 +10,7 @@ interface SendConsultantInviteEmailParams {
 export async function sendConsultantInviteEmail({ to, inviteUrl }: SendConsultantInviteEmailParams) {
   const resend = getResendClient();
   const { error } = await resend.emails.send({
-    from: `${siteConfig.name} <${siteConfig.contact.email}>`,
+    from: `${siteConfig.name} <${siteConfig.contact.transactionalFrom}>`,
     to,
     subject: `You've been invited to join the ${siteConfig.name} consultant network`,
     html: `
@@ -51,7 +51,7 @@ export async function sendNewCaseNotificationEmail({
 }: SendCaseNotificationEmailParams) {
   const resend = getResendClient();
   const { error } = await resend.emails.send({
-    from: `${siteConfig.name} <${siteConfig.contact.email}>`,
+    from: `${siteConfig.name} <${siteConfig.contact.transactionalFrom}>`,
     to,
     subject: `New consultation request: ${organizationName}`,
     html: `

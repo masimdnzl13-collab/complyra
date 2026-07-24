@@ -32,7 +32,9 @@ export default async function NewDocumentPage() {
     const systemSnap = await db.doc(firestorePaths.aiSystem(orgId, assessment.aiSystemId)).get();
     if (!systemSnap.exists) continue;
     const system = systemSnap.data() as AiSystemDoc;
-    options.push({ id: doc.id, assessment, systemName: system.name, systemRole: system.role });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- discarding the non-serializable Timestamp before passing to a client component
+    const { createdAt, ...assessmentWithoutTimestamp } = assessment;
+    options.push({ id: doc.id, assessment: assessmentWithoutTimestamp, systemName: system.name, systemRole: system.role });
   }
 
   return <DocumentGeneratorForm assessments={options} />;

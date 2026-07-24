@@ -16,7 +16,7 @@ async function sendBillingEmail({ to, subject, bodyHtml, ctaLabel, ctaUrl, unsub
   const resend = getResendClient();
   // See send-invite-email.ts — Resend resolves { data: null, error } on failure instead of throwing.
   const { error } = await resend.emails.send({
-    from: `${siteConfig.name} <${siteConfig.contact.email}>`,
+    from: `${siteConfig.name} <${siteConfig.contact.transactionalFrom}>`,
     to,
     subject,
     html: `

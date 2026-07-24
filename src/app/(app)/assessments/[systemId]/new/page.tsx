@@ -26,5 +26,11 @@ export default async function NewAssessmentPage({ params }: NewAssessmentPagePro
   if (!snap.exists) notFound();
   const system = snap.data() as AiSystemDoc;
 
-  return <AssessmentForm system={system} systemId={params.systemId} />;
+  const systemSummary = {
+    name: system.name,
+    description: system.description,
+    vendor: system.vendor,
+  };
+
+  return <AssessmentForm system={systemSummary} systemId={params.systemId} />;
 }

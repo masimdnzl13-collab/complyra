@@ -8,7 +8,7 @@ import { trackEvent } from "@/lib/analytics/track";
 
 export interface AssessmentOption {
   id: string;
-  assessment: AssessmentDoc;
+  assessment: Omit<AssessmentDoc, "createdAt">;
   systemName: string;
   systemRole: "provider" | "deployer";
 }

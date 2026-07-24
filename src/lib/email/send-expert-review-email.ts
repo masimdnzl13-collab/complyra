@@ -13,7 +13,7 @@ interface SendParams {
 async function sendExpertReviewEmail({ to, subject, bodyHtml, ctaLabel, ctaUrl }: SendParams) {
   const resend = getResendClient();
   const { error } = await resend.emails.send({
-    from: `${siteConfig.name} <${siteConfig.contact.email}>`,
+    from: `${siteConfig.name} <${siteConfig.contact.transactionalFrom}>`,
     to,
     subject,
     html: `

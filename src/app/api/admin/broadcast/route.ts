@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     if (!ownerEmail) continue;
     try {
       const { error } = await resend.emails.send({
-        from: `${siteConfig.name} <${siteConfig.contact.email}>`,
+        from: `${siteConfig.name} <${siteConfig.contact.transactionalFrom}>`,
         to: ownerEmail,
         subject: body.title,
         html: `

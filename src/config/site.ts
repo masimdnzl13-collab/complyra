@@ -17,6 +17,10 @@ export const siteConfig = {
   contact: {
     email: "hello@vermoncy.io",
     supportEmail: "support@vermoncy.io",
+    /** Resend "from" address. vermoncy.io isn't a verified sending domain yet
+     * (Resend silently rejects sends from unverified domains), so this falls
+     * back to Resend's own shared test domain until DNS verification is done. */
+    transactionalFrom: process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev",
   },
   social: {
     twitter: "https://twitter.com/vermoncy",
@@ -167,8 +171,8 @@ export const pricingPlans: readonly PricingPlan[] = [
     trialDays: null,
     lemonSqueezy: {
       productId: null,
-      variantIdMonthly: "var_abc123xyz",
-      variantIdYearly: "var_def456uvw",
+      variantIdMonthly: process.env.NEXT_PUBLIC_LEMONSQUEEZY_STARTER_MONTHLY_VARIANT_ID ?? null,
+      variantIdYearly: process.env.NEXT_PUBLIC_LEMONSQUEEZY_STARTER_YEARLY_VARIANT_ID ?? null,
     },
     targetUser: "Small teams preparing their first EU AI Act filing.",
     systemsLimit: 5,
@@ -196,8 +200,8 @@ export const pricingPlans: readonly PricingPlan[] = [
     trialDays: 14,
     lemonSqueezy: {
       productId: null,
-      variantIdMonthly: "var_ghi789xyz",
-      variantIdYearly: "var_jkl012uvw",
+      variantIdMonthly: process.env.NEXT_PUBLIC_LEMONSQUEEZY_GROWTH_MONTHLY_VARIANT_ID ?? null,
+      variantIdYearly: process.env.NEXT_PUBLIC_LEMONSQUEEZY_GROWTH_YEARLY_VARIANT_ID ?? null,
     },
     targetUser: "Growing companies managing multiple AI systems across teams.",
     systemsLimit: 20,
@@ -229,8 +233,8 @@ export const pricingPlans: readonly PricingPlan[] = [
     trialDays: 14,
     lemonSqueezy: {
       productId: null,
-      variantIdMonthly: "var_mno345xyz",
-      variantIdYearly: "var_pqr678uvw",
+      variantIdMonthly: process.env.NEXT_PUBLIC_LEMONSQUEEZY_SCALE_MONTHLY_VARIANT_ID ?? null,
+      variantIdYearly: process.env.NEXT_PUBLIC_LEMONSQUEEZY_SCALE_YEARLY_VARIANT_ID ?? null,
     },
     targetUser: "Organizations with complex, multi-entity compliance needs.",
     systemsLimit: "unlimited",

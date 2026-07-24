@@ -49,10 +49,13 @@ export async function POST(request: NextRequest) {
     await sendRiskReportEmail({ to: email, reportUrl });
   } catch {
     return NextResponse.json(
-      { error: "Report saved but the email could not be sent" },
+      {
+        error: "Report saved but the email could not be sent. You can still view it below.",
+        reportUrl: `/report/${leadRef.id}`,
+      },
       { status: 502 }
     );
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, reportUrl: `/report/${leadRef.id}` });
 }

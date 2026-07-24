@@ -15,7 +15,7 @@ export async function sendInviteEmail({ to, organizationName, inviteUrl }: SendI
   // instead of throwing, so callers relying on try/catch (like
   // /api/team/invite) would otherwise never see a failed send.
   const { error } = await resend.emails.send({
-    from: `${siteConfig.name} <${siteConfig.contact.email}>`,
+    from: `${siteConfig.name} <${siteConfig.contact.transactionalFrom}>`,
     to,
     subject: `You've been invited to join ${organizationName} on ${siteConfig.name}`,
     html: `

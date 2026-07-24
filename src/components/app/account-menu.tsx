@@ -51,6 +51,7 @@ export function AccountMenu({ displayName, email, roleLabel, showSettings }: Acc
         onClick={() => setOpen((value) => !value)}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-label="Account menu"
         className="flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-navy-50"
       >
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-white">

@@ -98,7 +98,10 @@ export interface DocumentSuggestion {
   reason: string;
 }
 
-export function suggestDocumentTypes(assessment: AssessmentDoc, systemRole: AiSystemRole): DocumentSuggestion[] {
+export function suggestDocumentTypes(
+  assessment: Pick<AssessmentDoc, "riskTier" | "decisionPoint">,
+  systemRole: AiSystemRole
+): DocumentSuggestion[] {
   const suggestions: DocumentSuggestion[] = [];
 
   if (assessment.riskTier === "high") {

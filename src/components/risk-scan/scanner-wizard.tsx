@@ -319,12 +319,14 @@ function ResultScreen({
   const [email, setEmail] = useState("");
   const [emailStatus, setEmailStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [failedReportUrl, setFailedReportUrl] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
 
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
     setEmailStatus("sending");
     setEmailError(null);
+    setFailedReportUrl(null);
     try {
       const response = await fetch("/api/risk-scan/email-report", {
         method: "POST",
@@ -340,8 +342,9 @@ function ResultScreen({
           },
         }),
       });
+      const body = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const body = await response.json().catch(() => ({}));
+        if (typeof body.reportUrl === "string") setFailedReportUrl(body.reportUrl);
         throw new Error(body.error ?? "Something went wrong. Please try again.");
       }
       setEmailStatus("sent");
@@ -422,7 +425,20 @@ function ResultScreen({
                 {emailStatus === "sending" ? "Sending…" : "Email my report"}
               </button>
             </form>
-            {emailStatus === "error" && emailError && <p className="mt-2 text-sm text-danger">{emailError}</p>}
+            {emailStatus === "error" && emailError && (
+              <p className="mt-2 text-sm text-danger">
+                {emailError}
+                {failedReportUrl && (
+                  <>
+                    {" "}
+                    <a href={failedReportUrl} className="font-medium underline hover:text-danger/80">
+                      View your report directly
+                    </a>
+                    .
+                  </>
+                )}
+              </p>
+            )}
           </>
         )}
       </div>
