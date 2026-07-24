@@ -110,6 +110,13 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Sales-prospecting candidates (distinct from risk-scan `leads` above).
+    // Read/written exclusively by /admin/leads pages and /api/admin/leads/*
+    // routes via the Admin SDK — deny-all here for the same reason.
+    match /discoveredLeads/{docId} {
+      allow read, write: if false;
+    }
+
     // P13 consultant marketplace — every page that reads these (admin
     // consultant/expert-review dashboards, the consultant portal, the
     // org-facing expert-reviews page) is a server component going through

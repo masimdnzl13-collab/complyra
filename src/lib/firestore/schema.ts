@@ -19,6 +19,7 @@ import type { PlanId, BlogCategory } from "@/config/site";
  *     organizations/{orgId}/invites/{inviteId}            (server-write-only, looked up by token)
  *   newsletterSubscribers/{email}                          (top-level, server-write-only)
  *   leads/{leadId}                                          (top-level, server-write-only, risk-scan report data)
+ *   discoveredLeads/{leadId}                                (top-level, server-write-only, sales-prospecting candidates)
  *   consultants/{uid}                                       (top-level, keyed by the consultant's Firebase uid — a
  *                                                             separate identity track from users/{uid}, not org-scoped)
  *   consultantInvites/{inviteId}                            (top-level, server-write-only, looked up by token)
@@ -39,6 +40,7 @@ export const COLLECTIONS = {
   invites: "invites",
   newsletterSubscribers: "newsletterSubscribers",
   leads: "leads",
+  discoveredLeads: "discoveredLeads",
   consultants: "consultants",
   consultantInvites: "consultantInvites",
   expertReviews: "expertReviews",
@@ -98,6 +100,9 @@ export const firestorePaths = {
 
   leads: () => COLLECTIONS.leads,
   lead: (leadId: string) => `${COLLECTIONS.leads}/${leadId}`,
+
+  discoveredLeads: () => COLLECTIONS.discoveredLeads,
+  discoveredLead: (leadId: string) => `${COLLECTIONS.discoveredLeads}/${leadId}`,
 
   consultants: () => COLLECTIONS.consultants,
   consultant: (uid: string) => `${COLLECTIONS.consultants}/${uid}`,
@@ -748,4 +753,53 @@ export interface BlogPostDoc {
   authorName: string;
   createdAt: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp;
+}
+
+/** How confident we are in a discovered email address — never shown to the user as more certain than this. */
+export type LeadEmailConfidence = "verified" | "pattern_guess" | "generic_corporate";
+
+/** One email address found for a discovered lead, via CSV hint or Hunter.io domain search (P2). */
+export interface LeadEmailContact {
+  address: string;
+  confidence: LeadEmailConfidence;
+  /** Person name, if Hunter.io returned one. */
+  name: string | null;
+  /** Job title, if known. */
+  position: string | null;
+}
+
+export type DiscoveredLeadStatus = "new" | "reviewed" | "contacted" | "not_converted" | "customer";
+
+/**
+ * A sales-prospecting candidate company — distinct from `LeadDoc`, which is
+ * risk-scan email capture. Top-level, not org-scoped, since these are
+ * Vermoncy's own prospects. Never touched by the client SDK (deny-all in
+ * firestore.rules, same as consultants/blogPosts/etc). Never hard-deleted —
+ * same archive-not-delete principle as AiSystemDoc; a dead lead just moves
+ * through `status`, it isn't removed.
+ */
+export interface DiscoveredLeadDoc {
+  companyName: string;
+  /** Lowercased/trimmed companyName — used for case-insensitive upsert matching on CSV re-import. */
+  companyNameLower: string;
+  city: string;
+  sector: string;
+  websiteUrl: string | null;
+  emails: LeadEmailContact[];
+  /** 0-100, null until the scoring engine runs. */
+  aiUsageScore: number | null;
+  /** Human-readable signal list backing aiUsageScore. */
+  scoreRationale: string[] | null;
+  /** Free text, not a closed union — e.g. "manual-csv-import" or "auto-scan-2026-07-24" (a per-run date gets embedded). */
+  discoverySource: string;
+  discoveredAt: FirestoreTimestamp;
+  updatedAt: FirestoreTimestamp;
+  status: DiscoveredLeadStatus;
+  /** Raw contact_hint column from CSV import, if present — not a validated email. */
+  contactHint: string | null;
+  /** Raw priority column from CSV import — a human judgment call, distinct from the computed aiUsageScore. */
+  manualPriority: string | null;
+  notes: string | null;
+  /** Set when an email-discovery pass finds no record for the domain — "no email found, manual check needed," never a guessed address shown as verified. */
+  emailSearchNote: string | null;
 }
