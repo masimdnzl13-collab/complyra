@@ -30,7 +30,15 @@ export async function POST() {
   // subscription.status is updated by the subscription_cancelled webhook,
   // not here, so it never drifts if this call succeeds but the webhook is
   // delayed or retried.
-  await cancelSubscription(organization.subscription.lemonSqueezySubscriptionId);
+  try {
+    await cancelSubscription(organization.subscription.lemonSqueezySubscriptionId);
+  } catch (err) {
+    console.error("LemonSqueezy cancellation failed", err);
+    return NextResponse.json(
+      { error: "Couldn't cancel your subscription. Please try again in a moment." },
+      { status: 502 }
+    );
+  }
 
   await db.collection(firestorePaths.auditLog(orgId)).add({
     actorId: user.uid,

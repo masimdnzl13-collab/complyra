@@ -20,14 +20,19 @@ export async function GET() {
     return NextResponse.json({ invoices: [] });
   }
 
-  const invoices = await listSubscriptionInvoices(organization.subscription.lemonSqueezySubscriptionId);
-  return NextResponse.json({
-    invoices: invoices.map((inv) => ({
-      id: inv.id,
-      total: inv.attributes.total_formatted,
-      status: inv.attributes.status,
-      createdAt: inv.attributes.created_at,
-      url: inv.attributes.urls.invoice_url,
-    })),
-  });
+  try {
+    const invoices = await listSubscriptionInvoices(organization.subscription.lemonSqueezySubscriptionId);
+    return NextResponse.json({
+      invoices: invoices.map((inv) => ({
+        id: inv.id,
+        total: inv.attributes.total_formatted,
+        status: inv.attributes.status,
+        createdAt: inv.attributes.created_at,
+        url: inv.attributes.urls.invoice_url,
+      })),
+    });
+  } catch (err) {
+    console.error("LemonSqueezy invoice list failed", err);
+    return NextResponse.json({ error: "Couldn't load invoice history." }, { status: 502 });
+  }
 }

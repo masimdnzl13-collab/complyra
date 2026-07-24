@@ -33,6 +33,9 @@ export function PlanCheckoutButton({
     setError(null);
     try {
       const { url } = await postJson("/api/billing/checkout", { planId, interval });
+      if (typeof url !== "string" || !url) {
+        throw new Error("Something went wrong. Please try again.");
+      }
       window.location.href = url;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");

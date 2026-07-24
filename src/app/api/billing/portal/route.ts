@@ -20,6 +20,14 @@ export async function GET() {
     return NextResponse.json({ error: "No active subscription" }, { status: 400 });
   }
 
-  const subscription = await getSubscription(organization.subscription.lemonSqueezySubscriptionId);
-  return NextResponse.json({ url: subscription.attributes.urls.customer_portal });
+  try {
+    const subscription = await getSubscription(organization.subscription.lemonSqueezySubscriptionId);
+    return NextResponse.json({ url: subscription.attributes.urls.customer_portal });
+  } catch (err) {
+    console.error("LemonSqueezy subscription lookup failed", err);
+    return NextResponse.json(
+      { error: "Couldn't open the billing portal. Please try again in a moment." },
+      { status: 502 }
+    );
+  }
 }

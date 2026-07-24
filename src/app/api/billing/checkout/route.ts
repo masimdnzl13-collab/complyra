@@ -54,12 +54,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Organization not found" }, { status: 404 });
   }
 
-  const url = await createCheckoutUrl({
-    variantId,
-    orgId,
-    orgName: organization.companyName,
-    userEmail: user.email,
-  });
-
-  return NextResponse.json({ url });
+  try {
+    const url = await createCheckoutUrl({
+      variantId,
+      orgId,
+      orgName: organization.companyName,
+      userEmail: user.email,
+    });
+    return NextResponse.json({ url });
+  } catch (err) {
+    console.error("LemonSqueezy checkout creation failed", err);
+    return NextResponse.json(
+      { error: "Couldn't start checkout. Please try again in a moment." },
+      { status: 502 }
+    );
+  }
 }
