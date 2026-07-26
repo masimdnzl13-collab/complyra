@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { DiscoveredLeadStatus } from "@/lib/firestore/schema";
 import { filterLeads, sortLeads, type LeadFilters, type LeadSortDirection, type LeadSortField } from "@/lib/leads/filter";
 import { leadScoreBand, type LeadScoreBand } from "@/lib/leads/constants";
@@ -12,6 +13,8 @@ const STATUS_LABELS: Record<DiscoveredLeadStatus, string> = {
   contacted: "Contacted",
   not_converted: "Not converted",
   customer: "Customer",
+  pending_review: "Pending review",
+  rejected: "Rejected",
 };
 
 const STATUS_STYLES: Record<DiscoveredLeadStatus, string> = {
@@ -20,6 +23,8 @@ const STATUS_STYLES: Record<DiscoveredLeadStatus, string> = {
   contacted: "bg-warning/10 text-warning",
   not_converted: "bg-navy-100 text-navy-400",
   customer: "bg-success/10 text-success",
+  pending_review: "bg-warning/10 text-warning",
+  rejected: "bg-navy-100 text-navy-400",
 };
 
 const SCORE_BAND_STYLES: Record<LeadScoreBand, string> = {
@@ -41,6 +46,45 @@ function ScoreBadge({ score }: { score: number | null }) {
     <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${SCORE_BAND_STYLES[band]}`}>
       {score !== null ? score : "Not scored"}
     </span>
+  );
+}
+
+/** Fires a POST action for one lead (find-email, score, ...) and refreshes the server-rendered page on success. */
+function LeadActionButton({ leadId, path, label, busyLabel }: { leadId: string; path: string; label: string; busyLabel: string }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function run() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/leads/${leadId}/${path}`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data?.error) {
+        setError(data?.error ?? "Something went wrong.");
+      } else {
+        router.refresh();
+      }
+    } catch {
+      setError("Something went wrong.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={run}
+        disabled={busy}
+        className="rounded-md border border-navy-200 px-3 py-1.5 text-xs font-medium text-navy-700 hover:bg-navy-50 disabled:opacity-50"
+      >
+        {busy ? busyLabel : label}
+      </button>
+      {error && <p className="mt-1 text-xs text-danger">{error}</p>}
+    </div>
   );
 }
 
@@ -233,7 +277,12 @@ export function LeadsTable({ leads }: { leads: SerializedLead[] }) {
             </p>
 
             <section className="mt-6">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-navy-400">AI usage score</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-navy-400">AI usage score</h3>
+                {selectedLead.websiteUrl && (
+                  <LeadActionButton leadId={selectedLead.id} path="score" label="Score" busyLabel="Scoring…" />
+                )}
+              </div>
               <div className="mt-2">
                 <ScoreBadge score={selectedLead.aiUsageScore} />
               </div>
@@ -256,10 +305,25 @@ export function LeadsTable({ leads }: { leads: SerializedLead[] }) {
                   {selectedLead.websiteUrl}
                 </a>
               )}
+              {selectedLead.discoverySourceUrl && (
+                <a
+                  href={selectedLead.discoverySourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1 block text-xs text-navy-500 hover:text-accent"
+                >
+                  Found via: {selectedLead.discoverySourceUrl}
+                </a>
+              )}
             </section>
 
             <section className="mt-6">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-navy-400">Emails</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-navy-400">Emails</h3>
+                {selectedLead.websiteUrl && (
+                  <LeadActionButton leadId={selectedLead.id} path="find-email" label="Find email" busyLabel="Searching…" />
+                )}
+              </div>
               {selectedLead.emails.length > 0 ? (
                 <ul className="mt-2 space-y-2">
                   {selectedLead.emails.map((email, i) => (
@@ -267,6 +331,7 @@ export function LeadsTable({ leads }: { leads: SerializedLead[] }) {
                       <p className="font-medium text-navy-900">{email.address}</p>
                       <p className="text-xs text-navy-500">
                         {CONFIDENCE_LABELS[email.confidence] ?? email.confidence}
+                        {email.confidenceScore !== null ? ` (${email.confidenceScore}%)` : ""}
                         {email.name ? ` · ${email.name}` : ""}
                         {email.position ? ` (${email.position})` : ""}
                       </p>
@@ -275,6 +340,9 @@ export function LeadsTable({ leads }: { leads: SerializedLead[] }) {
                 </ul>
               ) : (
                 <p className="mt-2 text-sm text-navy-500">{selectedLead.emailSearchNote ?? "No emails found yet."}</p>
+              )}
+              {selectedLead.emailPattern && (
+                <p className="mt-2 text-xs text-navy-500">General pattern: {selectedLead.emailPattern}</p>
               )}
               {selectedLead.contactHint && (
                 <p className="mt-2 text-xs text-navy-500">Contact hint from import: {selectedLead.contactHint}</p>

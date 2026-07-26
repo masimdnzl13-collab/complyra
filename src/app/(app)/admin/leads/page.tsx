@@ -3,8 +3,11 @@ import { getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths } from "@/lib/firestore/schema";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { AdminSubNav } from "@/components/admin/admin-sub-nav";
+import { LeadsSubNav } from "@/components/admin/leads-sub-nav";
 import { LeadsTable } from "@/components/admin/leads-table";
 import { LeadCsvImportForm } from "@/components/admin/lead-csv-import-form";
+import { LeadEmailBulkButton } from "@/components/admin/lead-email-bulk-button";
+import { LeadScoreBulkButton } from "@/components/admin/lead-score-bulk-button";
 import { serializeLeadDoc } from "@/lib/leads/serialize";
 import { LEAD_SCORE_HIGH_THRESHOLD } from "@/lib/leads/constants";
 
@@ -27,7 +30,11 @@ export default async function AdminLeadsPage() {
 
   const db = getAdminFirestore();
   const snap = await db.collection(firestorePaths.discoveredLeads()).get();
-  const leads = snap.docs.map(serializeLeadDoc);
+  const allLeads = snap.docs.map(serializeLeadDoc);
+  const pendingCount = allLeads.filter((l) => l.status === "pending_review").length;
+  // pending_review/rejected leads live in the Pending Review tab, not the
+  // main pipeline view — they're never deleted, just hidden here.
+  const leads = allLeads.filter((l) => l.status !== "pending_review" && l.status !== "rejected");
 
   const todayKey = new Date().toISOString().slice(0, 10);
   const addedToday = leads.filter((l) => l.discoveredAt.slice(0, 10) === todayKey).length;
@@ -43,6 +50,8 @@ export default async function AdminLeadsPage() {
       <div className="mt-6">
         <AdminSubNav active="/admin/leads" />
       </div>
+
+      <LeadsSubNav active="all" pendingCount={pendingCount} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-navy-100 bg-surface p-5">
@@ -66,6 +75,11 @@ export default async function AdminLeadsPage() {
 
       <div className="mt-8">
         <LeadCsvImportForm />
+      </div>
+
+      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+        <LeadEmailBulkButton />
+        <LeadScoreBulkButton />
       </div>
 
       <div className="mt-8">

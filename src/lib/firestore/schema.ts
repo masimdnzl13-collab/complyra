@@ -696,7 +696,7 @@ export interface RegulatoryUpdateDoc {
   createdAt: FirestoreTimestamp;
 }
 
-export type CronJobName = "billing-sweep" | "deadline-reminders" | "regulatory-news";
+export type CronJobName = "billing-sweep" | "deadline-reminders" | "regulatory-news" | "lead-discovery";
 export type CronRunStatus = "success" | "failed";
 
 /**
@@ -766,9 +766,24 @@ export interface LeadEmailContact {
   name: string | null;
   /** Job title, if known. */
   position: string | null;
+  /** Hunter.io's own 0-100 confidence score for this address, stored alongside (not instead of) `confidence`. */
+  confidenceScore: number | null;
 }
 
-export type DiscoveredLeadStatus = "new" | "reviewed" | "contacted" | "not_converted" | "customer";
+/**
+ * "pending_review" is an auto-discovered candidate (P4) awaiting admin
+ * approve/reject — it never appears in the main lead list. "rejected" is a
+ * pending candidate the admin declined; kept (not deleted) so it's never
+ * re-suggested, but hidden from the main list like pending_review.
+ */
+export type DiscoveredLeadStatus =
+  | "new"
+  | "reviewed"
+  | "contacted"
+  | "not_converted"
+  | "customer"
+  | "pending_review"
+  | "rejected";
 
 /**
  * A sales-prospecting candidate company — distinct from `LeadDoc`, which is
@@ -786,12 +801,16 @@ export interface DiscoveredLeadDoc {
   sector: string;
   websiteUrl: string | null;
   emails: LeadEmailContact[];
+  /** Hunter.io's generic pattern template for the domain (e.g. "{first}.{last}"), if any — informational only, never used to synthesize a fake address. */
+  emailPattern: string | null;
   /** 0-100, null until the scoring engine runs. */
   aiUsageScore: number | null;
   /** Human-readable signal list backing aiUsageScore. */
   scoreRationale: string[] | null;
   /** Free text, not a closed union — e.g. "manual-csv-import" or "auto-scan-2026-07-24" (a per-run date gets embedded). */
   discoverySource: string;
+  /** The URL Claude cited when it found this candidate via the auto-discovery cron (P4) — null for CSV/manual leads. */
+  discoverySourceUrl: string | null;
   discoveredAt: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp;
   status: DiscoveredLeadStatus;

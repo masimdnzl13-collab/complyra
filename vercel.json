@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/regulatory-news",
       "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/discover-leads",
+      "schedule": "0 */12 * * *"
     }
   ]
 }
