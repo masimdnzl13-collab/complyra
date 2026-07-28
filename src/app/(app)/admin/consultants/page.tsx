@@ -1,7 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth/current-user";
-import { isSuperAdminUid } from "@/lib/auth/superadmin";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths, type ConsultantApprovalStatus, type ConsultantDoc } from "@/lib/firestore/schema";
 import { constructMetadata } from "@/lib/construct-metadata";
@@ -22,17 +19,6 @@ const STATUS_STYLES: Record<ConsultantApprovalStatus, string> = {
 };
 
 export default async function AdminConsultantsPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-  if (!isSuperAdminUid(user.uid)) {
-    return (
-      <div className="mx-auto max-w-2xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-semibold text-navy-900">403 — Forbidden</h1>
-        <p className="mt-2 text-navy-600">This page is only available to the platform superadmin.</p>
-      </div>
-    );
-  }
-
   const snap = await getAdminFirestore().collection(firestorePaths.consultants()).get();
   const consultants = snap.docs
     .map((doc) => ({ id: doc.id, ...(doc.data() as ConsultantDoc) }))

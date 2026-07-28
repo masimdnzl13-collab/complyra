@@ -1,6 +1,4 @@
-import { notFound, redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth/current-user";
-import { isSuperAdminUid } from "@/lib/auth/superadmin";
+import { notFound } from "next/navigation";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 import {
   firestorePaths,
@@ -24,17 +22,6 @@ interface PageProps {
 }
 
 export default async function AdminOrganizationDetailPage({ params }: PageProps) {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-  if (!isSuperAdminUid(user.uid)) {
-    return (
-      <div className="mx-auto max-w-2xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-semibold text-navy-900">403 — Forbidden</h1>
-        <p className="mt-2 text-navy-600">This page is only available to the platform superadmin.</p>
-      </div>
-    );
-  }
-
   const db = getAdminFirestore();
   const orgSnap = await db.doc(firestorePaths.organization(params.id)).get();
   if (!orgSnap.exists) notFound();

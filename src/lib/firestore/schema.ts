@@ -247,6 +247,8 @@ export interface UserDoc {
   role: OrgRole;
   email: string;
   createdAt: FirestoreTimestamp;
+  /** Null until the dashboard product tour is finished or dismissed; never reset automatically. */
+  onboardingTourCompletedAt?: FirestoreTimestamp | null;
 }
 
 export type AiSystemStatus = "planned" | "active" | "inactive" | "retired";
@@ -496,7 +498,12 @@ export type AuditAction =
   | "admin_broadcast_sent"
   | "admin_blog_post_created"
   | "admin_blog_post_updated"
-  | "admin_blog_post_deleted";
+  | "admin_blog_post_deleted"
+  | "user_login"
+  | "user_logout"
+  | "unauthorized_access_attempt"
+  | "admin_password_verified"
+  | "admin_password_failed";
 
 /** Append-only: server (Admin SDK) writes only, never updated or deleted. */
 export interface AuditLogEntryDoc {

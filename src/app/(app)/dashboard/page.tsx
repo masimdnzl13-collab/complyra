@@ -21,6 +21,7 @@ import { DualTimeline } from "@/components/dashboard/dual-timeline";
 import { calculateComplianceScore, getScoreOpportunities } from "@/lib/dashboard/score";
 import { WatermarkChecklistDataSchema } from "@/lib/article50/types";
 import { buildComplianceChecklist, type ChecklistSeverity } from "@/lib/dashboard/checklist";
+import { OnboardingTour } from "@/components/dashboard/onboarding-tour";
 
 export const metadata = constructMetadata({
   title: "Dashboard",
@@ -47,10 +48,16 @@ const SEVERITY_LABELS: Record<ChecklistSeverity, string> = {
   info: "To do",
 };
 
-export default async function DashboardPage() {
+interface PageProps {
+  searchParams: { tour?: string };
+}
+
+export default async function DashboardPage({ searchParams }: PageProps) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (!user.userDoc) redirect("/onboarding");
+
+  const showTourInitially = !user.userDoc.onboardingTourCompletedAt || searchParams.tour === "replay";
 
   const orgId = user.userDoc.organizationId;
   const db = getAdminFirestore();
@@ -168,6 +175,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-16">
+      <OnboardingTour initialOpen={showTourInitially} />
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-navy-900">

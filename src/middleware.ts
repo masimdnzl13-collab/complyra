@@ -10,7 +10,22 @@ import { SESSION_COOKIE_NAME } from "@/lib/auth/constants";
  * protected API route; this middleware is a convenience layer on top, not
  * the security boundary.
  */
-const PROTECTED_PREFIXES = ["/dashboard", "/onboarding", "/consultant"];
+const PROTECTED_PREFIXES = [
+  "/dashboard",
+  "/onboarding",
+  "/consultant",
+  "/ai-systems",
+  "/assessments",
+  "/documents",
+  "/article-50",
+  "/ai-literacy",
+  "/expert-reviews",
+  "/billing",
+  "/settings",
+  "/admin",
+  "/checkout",
+  "/regulatory-updates",
+];
 const AUTH_ONLY_PATHS = ["/login", "/register"];
 
 export function middleware(request: NextRequest) {
@@ -29,5 +44,22 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/onboarding/:path*", "/consultant/:path*", "/login", "/register"],
+  matcher: [
+    "/dashboard/:path*",
+    "/onboarding/:path*",
+    "/consultant/:path*",
+    "/ai-systems/:path*",
+    "/assessments/:path*",
+    "/documents/:path*",
+    "/article-50/:path*",
+    "/ai-literacy/:path*",
+    "/expert-reviews/:path*",
+    "/billing/:path*",
+    "/settings/:path*",
+    "/admin/:path*",
+    "/checkout/:path*",
+    "/regulatory-updates/:path*",
+    "/login",
+    "/register",
+  ],
 };

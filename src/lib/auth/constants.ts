@@ -5,5 +5,5 @@
  */
 export const SESSION_COOKIE_NAME = "session";
 
-/** Firebase session cookies max out at 14 days. */
-export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 14;
+/** Firebase session cookies max out at 14 days; we cap ours tighter than that. */
+export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 5;

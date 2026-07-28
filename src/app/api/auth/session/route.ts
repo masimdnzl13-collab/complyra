@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getAdminAuth } from "@/lib/firebase/admin";
+import { FieldValue } from "firebase-admin/firestore";
+import { getAdminAuth, getAdminFirestore } from "@/lib/firebase/admin";
 import { SESSION_COOKIE_NAME, SESSION_MAX_AGE_SECONDS } from "@/lib/auth/constants";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { firestorePaths, type UserDoc } from "@/lib/firestore/schema";
 
 /** Mints a session cookie from a freshly-obtained Firebase ID token. */
 export async function POST(request: NextRequest) {
@@ -18,7 +20,7 @@ export async function POST(request: NextRequest) {
 
   try {
     // Reject tampered/expired tokens before minting a longer-lived cookie from them.
-    await getAdminAuth().verifyIdToken(idToken);
+    const decoded = await getAdminAuth().verifyIdToken(idToken);
     const sessionCookie = await getAdminAuth().createSessionCookie(idToken, {
       expiresIn: SESSION_MAX_AGE_SECONDS * 1000,
     });
@@ -32,6 +34,20 @@ export async function POST(request: NextRequest) {
       maxAge: SESSION_MAX_AGE_SECONDS,
     });
 
+    const userDocSnap = await getAdminFirestore().doc(firestorePaths.user(decoded.uid)).get();
+    const userDoc = userDocSnap.data() as UserDoc | undefined;
+    if (userDoc) {
+      await getAdminFirestore()
+        .collection(firestorePaths.auditLog(userDoc.organizationId))
+        .add({
+          actorId: decoded.uid,
+          action: "user_login",
+          targetCollection: "users",
+          targetId: decoded.uid,
+          timestamp: FieldValue.serverTimestamp(),
+        });
+    }
+
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "Unable to create session" }, { status: 401 });
@@ -40,6 +56,33 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE() {
   const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+
+  if (sessionCookie) {
+    try {
+      const decoded = await getAdminAuth().verifySessionCookie(sessionCookie);
+      const userDocSnap = await getAdminFirestore().doc(firestorePaths.user(decoded.uid)).get();
+      const userDoc = userDocSnap.data() as UserDoc | undefined;
+      if (userDoc) {
+        await getAdminFirestore()
+          .collection(firestorePaths.auditLog(userDoc.organizationId))
+          .add({
+            actorId: decoded.uid,
+            action: "user_logout",
+            targetCollection: "users",
+            targetId: decoded.uid,
+            timestamp: FieldValue.serverTimestamp(),
+          });
+      }
+      // Invalidates the session everywhere, not just this browser — clearing
+      // the cookie alone leaves the underlying Firebase session valid until
+      // it naturally expires.
+      await getAdminAuth().revokeRefreshTokens(decoded.uid);
+    } catch {
+      // Malformed/already-expired cookie — nothing to revoke, still clear it below.
+    }
+  }
+
   cookieStore.delete(SESSION_COOKIE_NAME);
   return NextResponse.json({ ok: true });
 }

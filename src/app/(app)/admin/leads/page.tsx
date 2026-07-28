@@ -1,4 +1,3 @@
-import { getCurrentSuperAdmin } from "@/lib/auth/superadmin";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths } from "@/lib/firestore/schema";
 import { constructMetadata } from "@/lib/construct-metadata";
@@ -18,16 +17,6 @@ export const metadata = constructMetadata({
 });
 
 export default async function AdminLeadsPage() {
-  const admin = await getCurrentSuperAdmin();
-  if (!admin) {
-    return (
-      <div className="mx-auto max-w-2xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-semibold text-navy-900">403 — Forbidden</h1>
-        <p className="mt-2 text-navy-600">This page is only available to the platform superadmin.</p>
-      </div>
-    );
-  }
-
   const db = getAdminFirestore();
   const snap = await db.collection(firestorePaths.discoveredLeads()).get();
   const allLeads = snap.docs.map(serializeLeadDoc);

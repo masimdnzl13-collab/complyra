@@ -10,6 +10,7 @@ import { generateDeepfakeDisclosureText, generatePublicInterestDisclosureText } 
 import type { DeepfakeArtifactType } from "@/lib/article50/types";
 
 const ARTIFACT_TYPES = new Set<DeepfakeArtifactType>(["deepfake", "public_interest_text", "both"]);
+const CONTENT_DESCRIPTION_MAX_LENGTH = 2000;
 
 interface RequestBody {
   artifactType: DeepfakeArtifactType;
@@ -22,8 +23,13 @@ function isValidBody(body: unknown): body is RequestBody {
   const b = body as Record<string, unknown>;
   if (typeof b.artifactType !== "string" || !ARTIFACT_TYPES.has(b.artifactType as DeepfakeArtifactType)) return false;
   if (typeof b.isArtisticOrSatirical !== "boolean") return false;
-  if (b.publicInterestContentDescription !== undefined && typeof b.publicInterestContentDescription !== "string") {
-    return false;
+  if (b.publicInterestContentDescription !== undefined) {
+    if (
+      typeof b.publicInterestContentDescription !== "string" ||
+      b.publicInterestContentDescription.length > CONTENT_DESCRIPTION_MAX_LENGTH
+    ) {
+      return false;
+    }
   }
   return true;
 }

@@ -19,6 +19,7 @@ const TURNAROUNDS: PreferredTurnaround[] = ["24h", "2d", "1w"];
 const LANGUAGE_PREFS: ConsultantLanguagePreference[] = ["en", "de", "tr", "any"];
 const TURNAROUND_LABELS: Record<PreferredTurnaround, string> = { "24h": "24 hours", "2d": "2 days", "1w": "1 week" };
 const MATCHED_CONSULTANTS_TO_NOTIFY = 3;
+const USER_NOTES_MAX_LENGTH = 2000;
 
 interface RequestBody {
   assessmentId: string;
@@ -35,6 +36,7 @@ function isValidBody(body: unknown): body is RequestBody {
     typeof b.assessmentId === "string" &&
     typeof b.userNotes === "string" &&
     b.userNotes.trim().length > 0 &&
+    b.userNotes.length <= USER_NOTES_MAX_LENGTH &&
     TURNAROUNDS.includes(b.preferredTurnaround as PreferredTurnaround) &&
     LANGUAGE_PREFS.includes(b.languagePreference as ConsultantLanguagePreference) &&
     (b.budgetCeiling === null || (typeof b.budgetCeiling === "number" && b.budgetCeiling > 0))

@@ -48,16 +48,28 @@ const AFFECTED_GROUPS = new Set<AffectedGroup>([
 ]);
 const DECISION_ROLES = new Set<DecisionMakingRole>(["info_only", "human_in_the_loop", "autonomous"]);
 
+const NAME_MAX_LENGTH = 200;
+const VENDOR_MAX_LENGTH = 200;
+const LONG_TEXT_MAX_LENGTH = 2000;
+
 export function isValidAiSystemInput(body: unknown): body is AiSystemInput {
   if (!body || typeof body !== "object") return false;
   const b = body as Record<string, unknown>;
 
-  if (typeof b.name !== "string" || b.name.trim().length === 0) return false;
-  if (typeof b.description !== "string" || b.description.trim().length === 0) return false;
+  if (typeof b.name !== "string" || b.name.trim().length === 0 || b.name.length > NAME_MAX_LENGTH) return false;
+  if (
+    typeof b.description !== "string" ||
+    b.description.trim().length === 0 ||
+    b.description.length > LONG_TEXT_MAX_LENGTH
+  ) {
+    return false;
+  }
   if (typeof b.role !== "string" || !ROLES.has(b.role as AiSystemRole)) return false;
-  if (typeof b.vendor !== "string" || b.vendor.trim().length === 0) return false;
+  if (typeof b.vendor !== "string" || b.vendor.trim().length === 0 || b.vendor.length > VENDOR_MAX_LENGTH) return false;
   if (typeof b.businessArea !== "string" || !BUSINESS_AREAS.has(b.businessArea as BusinessArea)) return false;
-  if (typeof b.purpose !== "string" || b.purpose.trim().length === 0) return false;
+  if (typeof b.purpose !== "string" || b.purpose.trim().length === 0 || b.purpose.length > LONG_TEXT_MAX_LENGTH) {
+    return false;
+  }
   if (!Array.isArray(b.dataTypes) || !b.dataTypes.every((d) => typeof d === "string" && DATA_TYPES.has(d as AiDataType))) {
     return false;
   }
