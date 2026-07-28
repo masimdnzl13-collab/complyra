@@ -1,4 +1,6 @@
 import "server-only";
+import Anthropic from "@anthropic-ai/sdk";
+import { getHunterAccountStatus } from "@/lib/leads/hunter";
 
 export interface ApiHealthStatus {
   name: string;
@@ -42,6 +44,33 @@ export async function checkApiHealth(): Promise<ApiHealthStatus[]> {
     (async () => {
       const hasKey = !!process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== "your-resend-api-key";
       return { name: "Resend", ok: hasKey, detail: hasKey ? "API key configured" : "No API key configured" };
+    })(),
+    (async () => {
+      const status = await getHunterAccountStatus();
+      if (!status) return { name: "Hunter.io", ok: false, detail: "Unreachable or no API key configured" };
+      return { name: "Hunter.io", ok: status.available > 0, detail: `${status.available} searches left this cycle` };
+    })(),
+    (async () => {
+      const hasKey = !!process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== "your-anthropic-api-key";
+      if (!hasKey) return { name: "Claude API", ok: false, detail: "No API key configured" };
+      try {
+        // A real, minimal Messages call — not just a models.retrieve() lookup —
+        // because credit-balance and billing failures only surface on an
+        // actual inference request, which is exactly what discover-leads and
+        // regulatory-news depend on.
+        await withTimeout(
+          new Anthropic().messages.create({
+            model: "claude-opus-4-8",
+            max_tokens: 1,
+            messages: [{ role: "user", content: "OK" }],
+          }),
+          8000
+        );
+        return { name: "Claude API", ok: true, detail: "Reachable" };
+      } catch (err) {
+        const detail = err instanceof Anthropic.APIError ? err.message : err instanceof Error ? err.message : "Unreachable";
+        return { name: "Claude API", ok: false, detail };
+      }
     })(),
   ];
 

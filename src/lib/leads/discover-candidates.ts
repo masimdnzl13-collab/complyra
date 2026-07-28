@@ -67,21 +67,37 @@ export async function discoverLeadCandidates(city: string, sector: string): Prom
         }),
       { timeoutMs: 90_000 }
     );
-  } catch {
+  } catch (err) {
+    console.error("[discoverLeadCandidates] Claude API call failed:", err instanceof Error ? err.message : err);
     return [];
   }
 
-  if (response.stop_reason === "refusal") return [];
+  if (response.stop_reason === "refusal") {
+    console.error("[discoverLeadCandidates] Claude refused the request (stop_reason: refusal)");
+    return [];
+  }
+
+  const usedWebSearch = response.content.some((block) => block.type === "web_search_tool_result");
+  if (!usedWebSearch) {
+    console.error("[discoverLeadCandidates] response contained no web_search_tool_result block — Claude did not search");
+  }
 
   const lastTextBlock = [...response.content].reverse().find((block) => block.type === "text");
-  if (!lastTextBlock || lastTextBlock.type !== "text") return [];
+  if (!lastTextBlock || lastTextBlock.type !== "text") {
+    console.error(
+      "[discoverLeadCandidates] no text block in response content — block types:",
+      response.content.map((b) => b.type)
+    );
+    return [];
+  }
 
   try {
     const parsed = CandidateSchema.parse(JSON.parse(lastTextBlock.text));
     return parsed.candidates
       .filter((c) => c.companyName.trim().length > 0 && c.sourceUrl.trim().length > 0)
       .slice(0, MAX_CANDIDATES_PER_RUN);
-  } catch {
+  } catch (err) {
+    console.error("[discoverLeadCandidates] failed to parse/validate Claude's JSON output:", err, "raw text:", lastTextBlock.text);
     return [];
   }
 }
