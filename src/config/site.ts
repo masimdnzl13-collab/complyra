@@ -17,6 +17,8 @@ export const siteConfig = {
   contact: {
     email: "hello@vermoncy.io",
     supportEmail: "support@vermoncy.io",
+    privacyEmail: "privacy@vermoncy.io",
+    securityEmail: "security@vermoncy.io",
     /** Resend "from" address. vermoncy.io isn't a verified sending domain yet
      * (Resend silently rejects sends from unverified domains), so this falls
      * back to Resend's own shared test domain until DNS verification is done. */
@@ -395,6 +397,59 @@ export const legalConfig = {
   disclaimer:
     "Vermoncy is a documentation preparation tool. It does not constitute legal advice, and using it does not establish a legal or professional relationship. Consult a qualified professional for advice on your specific compliance obligations under the EU AI Act.",
   copyrightHolder: "Vermoncy",
+
+  /**
+   * Identity published on the Legal Notice and as the Privacy Policy's data
+   * controller. `address.street`/`postalCode`/`city` are intentionally null —
+   * there's no registered or virtual office yet, so only the country is
+   * published for now. Fill them in once an address exists; the Legal
+   * Notice renders the full block automatically as soon as `street` is set.
+   */
+  entity: {
+    responsibleName: "Mustafa Asım Denizli",
+    address: {
+      street: null as string | null,
+      postalCode: null as string | null,
+      city: null as string | null,
+      country: "Turkey",
+    },
+    phone: "+90 501 150 07 41" as string | null,
+  },
+
+  /**
+   * GDPR Article 27 EU representative — not yet appointed (needs legal
+   * advice first, see the compliance-docs handoff notes). Every field stays
+   * null until one is engaged; the Legal Notice and Privacy Policy hide the
+   * section entirely while `name` is null rather than show a half-filled one.
+   */
+  euRepresentative: {
+    name: null as string | null,
+    address: null as string | null,
+    email: null as string | null,
+  },
+
+  /**
+   * Turkish company registration — in progress as of writing (sole
+   * proprietorship for now). Populate once available; the Legal Notice only
+   * lists the numbers that are actually set.
+   */
+  businessRegistration: {
+    tradeRegisterNumber: null as string | null,
+    taxId: null as string | null,
+    mersisNo: null as string | null,
+  },
+
+  /** Primary data-processing regions, shown on the Privacy Policy subprocessor table and the Security page. */
+  dataRegions: {
+    firebase: "European Union",
+    vercel: "United States",
+  },
+
+  /** Payment processor — LemonSqueezy acts as merchant of record (see pricingPlan.lemonSqueezy and the Terms of Service). Region left null until confirmed. */
+  paymentProvider: {
+    name: "LemonSqueezy",
+    region: null as string | null,
+  },
 } as const;
 
 export function formatPlanPrice(plan: PricingPlan): string {

@@ -10,6 +10,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="w-full max-w-sm rounded-xl border border-navy-100 bg-surface p-8 shadow-sm">
         {children}
       </div>
+      <p className="mt-4 text-xs text-navy-400">
+        <Link href="/privacy" className="hover:text-navy-600">
+          Privacy Policy
+        </Link>
+      </p>
     </div>
   );
 }

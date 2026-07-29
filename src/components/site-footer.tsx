@@ -45,6 +45,16 @@ export function SiteFooter() {
                   Privacy Policy
                 </Link>
               </li>
+              <li>
+                <Link href="/legal-notice" className="hover:text-white">
+                  Legal Notice
+                </Link>
+              </li>
+              <li>
+                <Link href="/security" className="hover:text-white">
+                  Security
+                </Link>
+              </li>
             </ul>
           </div>
           <div>

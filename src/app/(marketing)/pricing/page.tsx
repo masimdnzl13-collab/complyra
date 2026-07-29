@@ -67,6 +67,14 @@ export default function PricingPage() {
         ))}
       </div>
 
+      <p className="mt-8 text-center text-sm text-navy-500">
+        Evaluating Vermoncy for procurement? See how we handle your data on our{" "}
+        <Link href="/security" className="font-medium text-accent hover:text-accent-600">
+          Security page
+        </Link>
+        .
+      </p>
+
       {/* Comparison table */}
       <div className="mt-20">
         <h2 className="text-center text-2xl font-semibold tracking-tight text-navy-900">

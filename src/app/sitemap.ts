@@ -20,6 +20,8 @@ const marketingRoutes = [
   "/export-compliance",
   "/terms",
   "/privacy",
+  "/legal-notice",
+  "/security",
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

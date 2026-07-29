@@ -4,8 +4,23 @@ import { useEffect, useState } from "react";
 import Script from "next/script";
 import Link from "next/link";
 
-const STORAGE_KEY = "vermoncy-cookie-consent";
+export const COOKIE_CONSENT_STORAGE_KEY = "vermoncy-cookie-consent";
+const STORAGE_KEY = COOKIE_CONSENT_STORAGE_KEY;
+const RESET_EVENT = "vermoncy:reset-cookie-consent";
 type Consent = "unknown" | "accepted" | "declined";
+
+/** Clears the stored choice and re-shows the banner — used by the "manage cookie preferences" link on the Privacy Policy page. */
+export function ManageCookiePreferencesButton({ className }: { className?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={() => window.dispatchEvent(new Event(RESET_EVENT))}
+      className={className ?? "font-medium text-accent hover:text-accent-600"}
+    >
+      Manage cookie preferences
+    </button>
+  );
+}
 
 /**
  * Renders nothing until mounted (localStorage isn't available during SSR),
@@ -20,6 +35,13 @@ export function CookieConsent({ gaMeasurementId }: { gaMeasurementId?: string })
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     setConsent(stored === "accepted" || stored === "declined" ? stored : "unknown");
+
+    function onResetRequested() {
+      window.localStorage.removeItem(STORAGE_KEY);
+      setConsent("unknown");
+    }
+    window.addEventListener(RESET_EVENT, onResetRequested);
+    return () => window.removeEventListener(RESET_EVENT, onResetRequested);
   }, []);
 
   function choose(value: "accepted" | "declined") {
