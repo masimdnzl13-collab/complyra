@@ -1,7 +1,7 @@
 import "server-only";
 import type { OrganizationDoc } from "@/lib/firestore/schema";
-import { pricingPlans } from "@/config/site";
 import { getCurrentMonthKey } from "@/lib/usage/monthly-quota";
+import { getEffectivePlan, isUnlimitedUser } from "@/lib/billing/effective-plan";
 
 export type MonthlyQuotaType = "assessments" | "documents" | "article50Texts";
 
@@ -28,15 +28,21 @@ export interface QuotaCheckResult {
 
 const PAST_DUE_MESSAGE = "Your subscription payment is overdue. Please update your payment method.";
 
-/** Step 2 of the spec's quota flow — checked on its own so non-monthly-quota routes (AI systems, AI literacy seats) can reuse it without the monthly-counter machinery. */
-export function checkPastDue(organization: OrganizationDoc): string | null {
+/** Step 2 of the spec's quota flow — checked on its own so non-monthly-quota routes (AI systems, AI literacy seats) can reuse it without the monthly-counter machinery. Pass the acting user's uid so superadmins (SUPERADMIN_UIDS) bypass past-due blocking, same as every other billing gate. */
+export function checkPastDue(organization: OrganizationDoc, uid?: string | null): string | null {
+  if (isUnlimitedUser(uid)) return null;
   return organization.subscription.status === "past_due" ? PAST_DUE_MESSAGE : null;
 }
 
 /** Steps 2–3 of the spec's quota flow for a monthly-reset counter. Step 4 (increment) and step 5 (audit log) stay in the caller, alongside the route's own Firestore batch. */
-export function checkMonthlyQuota(organization: OrganizationDoc, type: MonthlyQuotaType, amount = 1): QuotaCheckResult {
+export function checkMonthlyQuota(
+  organization: OrganizationDoc,
+  type: MonthlyQuotaType,
+  amount = 1,
+  uid?: string | null
+): QuotaCheckResult {
   const currentMonthKey = getCurrentMonthKey();
-  const pastDue = checkPastDue(organization);
+  const pastDue = checkPastDue(organization, uid);
   if (pastDue) {
     return { allowed: false, error: pastDue, monthIsStale: false, currentMonthKey };
   }
@@ -45,13 +51,13 @@ export function checkMonthlyQuota(organization: OrganizationDoc, type: MonthlyQu
   const monthIsStale = organization.usage.usageMonthKey !== currentMonthKey;
   const usedThisMonth = monthIsStale ? 0 : organization.usage[usageKey] ?? 0;
 
-  const plan = pricingPlans.find((p) => p.id === organization.subscription.planId);
-  const limit = plan?.[planKey] ?? 0;
+  const plan = getEffectivePlan(uid, organization.subscription.planId);
+  const limit = plan[planKey];
 
   if (limit !== "unlimited" && usedThisMonth + amount > limit) {
     return {
       allowed: false,
-      error: `You've reached your monthly limit for ${label} (${limit}/month on the ${plan?.name ?? "current"} plan). Upgrade to continue.`,
+      error: `You've reached your monthly limit for ${label} (${limit}/month on the ${plan.name} plan). Upgrade to continue.`,
       monthIsStale,
       currentMonthKey,
     };

@@ -4,6 +4,7 @@ import { getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths, type OrganizationDoc } from "@/lib/firestore/schema";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { pricingPlans } from "@/config/site";
+import { getEffectivePlan, isUnlimitedUser } from "@/lib/billing/effective-plan";
 import {
   CancelSubscriptionButton,
   InvoiceHistory,
@@ -56,7 +57,8 @@ export default async function BillingPage() {
   if (!organization) redirect("/onboarding");
 
   const { subscription, usage } = organization;
-  const currentPlan = pricingPlans.find((p) => p.id === subscription.planId) ?? pricingPlans[0];
+  const isSuperadmin = isUnlimitedUser(user.uid);
+  const currentPlan = getEffectivePlan(user.uid, subscription.planId);
   const hasActiveSubscription = !!subscription.lemonSqueezySubscriptionId && subscription.status !== "cancelled";
   const paidPlans = pricingPlans.filter((p) => p.id !== "free");
 
@@ -70,18 +72,23 @@ export default async function BillingPage() {
       <h1 className="text-3xl font-semibold tracking-tight text-navy-900">Billing</h1>
       <p className="mt-1 text-navy-600">Manage your Vermoncy plan, usage, and payment details.</p>
 
-      {subscription.status === "past_due" && (
+      {isSuperadmin && (
+        <div className="mt-6 rounded-xl border-2 border-navy-900 bg-navy-900/5 p-4 text-sm text-navy-900">
+          Superadmin access — billing status and plan limits below don&apos;t apply to your account.
+        </div>
+      )}
+      {!isSuperadmin && subscription.status === "past_due" && (
         <div className="mt-6 rounded-xl border-2 border-danger bg-danger/5 p-4 text-sm text-navy-900">
           Your last payment failed. Update your payment method to keep access to your plan&apos;s features.
         </div>
       )}
-      {trialDaysLeft !== null && (
+      {!isSuperadmin && trialDaysLeft !== null && (
         <div className="mt-6 rounded-xl border-2 border-warning bg-warning/5 p-4 text-sm text-navy-900">
           Your {currentPlan.name} trial ends in {trialDaysLeft} day{trialDaysLeft === 1 ? "" : "s"}. Add a payment
           method to continue without interruption.
         </div>
       )}
-      {subscription.status === "cancelled" && subscription.currentPeriodEnd && (
+      {!isSuperadmin && subscription.status === "cancelled" && subscription.currentPeriodEnd && (
         <div className="mt-6 rounded-xl border-2 border-navy-200 bg-navy-50 p-4 text-sm text-navy-900">
           Your subscription is cancelled and will end on {subscription.currentPeriodEnd.toDate().toLocaleDateString()}.
         </div>
@@ -94,7 +101,12 @@ export default async function BillingPage() {
             <p className="text-xs font-medium text-navy-500">Current plan</p>
             <p className="text-lg font-semibold text-navy-900">
               {currentPlan.name}
-              {subscription.billingInterval && (
+              {isSuperadmin && (
+                <span className="ml-2 rounded-full bg-navy-900 px-2 py-0.5 text-xs font-semibold text-white">
+                  Internal / Unlimited
+                </span>
+              )}
+              {!isSuperadmin && subscription.billingInterval && (
                 <span className="ml-2 text-sm font-normal text-navy-500">billed {subscription.billingInterval}ly</span>
               )}
             </p>
@@ -144,6 +156,10 @@ export default async function BillingPage() {
                 {isCurrent ? (
                   <span className="rounded-md bg-navy-100 px-4 py-2 text-center text-sm font-medium text-navy-600">
                     Current plan
+                  </span>
+                ) : isSuperadmin ? (
+                  <span className="rounded-md border border-dashed border-navy-200 px-4 py-2 text-center text-sm text-navy-400">
+                    Included in unlimited access
                   </span>
                 ) : checkoutAvailable ? (
                   <PlanCheckoutButton planId={plan.id} interval="month" label={`Switch to ${plan.name}`} />

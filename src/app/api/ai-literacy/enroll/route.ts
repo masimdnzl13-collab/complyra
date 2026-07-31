@@ -3,8 +3,8 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { firestorePaths, type EmployeeRole, type OrganizationDoc, type TrainingRecordDoc } from "@/lib/firestore/schema";
-import { pricingPlans } from "@/config/site";
 import { checkPastDue } from "@/lib/billing/quota";
+import { getEffectivePlan } from "@/lib/billing/effective-plan";
 
 const ROLES = new Set<EmployeeRole>(["technical", "hr", "business", "executive", "general", "other"]);
 
@@ -51,17 +51,17 @@ export async function POST(request: NextRequest) {
   const organization = orgSnap.data() as OrganizationDoc | undefined;
   if (!organization) return NextResponse.json({ error: "Organization not found" }, { status: 404 });
 
-  const pastDue = checkPastDue(organization);
+  const pastDue = checkPastDue(organization, user.uid);
   if (pastDue) return NextResponse.json({ error: pastDue }, { status: 403 });
 
-  const plan = pricingPlans.find((p) => p.id === organization.subscription.planId);
-  const seatLimit = plan?.aiLiteracySeats ?? 5;
+  const plan = getEffectivePlan(user.uid, organization.subscription.planId);
+  const seatLimit = plan.aiLiteracySeats;
   if (seatLimit !== "unlimited") {
     const countSnap = await db.collection(firestorePaths.trainingRecords(orgId)).count().get();
     if (countSnap.data().count >= seatLimit) {
       return NextResponse.json(
         {
-          error: `Your ${plan?.name ?? "current"} plan supports AI literacy training for up to ${seatLimit} employees. Upgrade your plan to add more.`,
+          error: `Your ${plan.name} plan supports AI literacy training for up to ${seatLimit} employees. Upgrade your plan to add more.`,
         },
         { status: 403 }
       );

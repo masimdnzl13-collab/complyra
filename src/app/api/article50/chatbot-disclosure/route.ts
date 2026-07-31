@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
   const organization = orgSnap.data() as OrganizationDoc | undefined;
   if (!organization) return NextResponse.json({ error: "Organization not found" }, { status: 404 });
 
-  const quota = checkArticle50TextQuota(organization);
+  const quota = checkArticle50TextQuota(organization, user.uid);
   if (!quota.allowed) {
     return NextResponse.json({ error: quota.error }, { status: 403 });
   }

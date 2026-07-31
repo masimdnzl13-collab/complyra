@@ -3,8 +3,8 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { firestorePaths, type OrganizationDoc } from "@/lib/firestore/schema";
-import { pricingPlans } from "@/config/site";
 import { checkPastDue } from "@/lib/billing/quota";
+import { getEffectivePlan } from "@/lib/billing/effective-plan";
 import { isValidAiSystemInput } from "@/lib/ai-systems/validate";
 
 export async function POST(request: NextRequest) {
@@ -30,17 +30,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Organization not found" }, { status: 404 });
   }
 
-  const pastDue = checkPastDue(organization);
+  const pastDue = checkPastDue(organization, user.uid);
   if (pastDue) {
     return NextResponse.json({ error: pastDue }, { status: 403 });
   }
 
-  const plan = pricingPlans.find((p) => p.id === organization.subscription.planId);
-  const limit = plan?.systemsLimit ?? 1;
+  const plan = getEffectivePlan(user.uid, organization.subscription.planId);
+  const limit = plan.systemsLimit;
   if (limit !== "unlimited" && organization.usage.registeredSystemsCount >= limit) {
     return NextResponse.json(
       {
-        error: `Your ${plan?.name ?? "current"} plan supports up to ${limit} AI system${limit === 1 ? "" : "s"}. Upgrade your plan to add more.`,
+        error: `Your ${plan.name} plan supports up to ${limit} AI system${limit === 1 ? "" : "s"}. Upgrade your plan to add more.`,
       },
       { status: 403 }
     );

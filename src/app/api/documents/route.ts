@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Organization not found" }, { status: 404 });
   }
 
-  const quota = checkMonthlyQuota(organization, "documents", body.types.length);
+  const quota = checkMonthlyQuota(organization, "documents", body.types.length, user.uid);
   if (!quota.allowed) {
     return NextResponse.json({ error: quota.error }, { status: 403 });
   }

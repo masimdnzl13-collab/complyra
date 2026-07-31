@@ -14,7 +14,8 @@ import {
   type TrainingRecordDoc,
 } from "@/lib/firestore/schema";
 import { constructMetadata } from "@/lib/construct-metadata";
-import { pricingPlans, regulationDeadlines } from "@/config/site";
+import { regulationDeadlines } from "@/config/site";
+import { getEffectivePlan, isUnlimitedUser } from "@/lib/billing/effective-plan";
 import { InviteTeammateForm } from "@/components/team/invite-teammate-form";
 import { ScoreGauge } from "@/components/dashboard/score-gauge";
 import { DualTimeline } from "@/components/dashboard/dual-timeline";
@@ -169,9 +170,9 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   const watermarkingDeadline = regulationDeadlines.find((d) => d.id === "watermarking")!;
   const highRiskDeadline = regulationDeadlines.find((d) => d.id === "high-risk")!;
 
-  const plan = pricingPlans.find((p) => p.id === organization?.subscription.planId);
-  const systemsNearLimit =
-    plan && plan.systemsLimit !== "unlimited" && activeSystems.length >= plan.systemsLimit;
+  const isSuperadmin = isUnlimitedUser(user.uid);
+  const plan = getEffectivePlan(user.uid, organization?.subscription.planId ?? "free");
+  const systemsNearLimit = plan.systemsLimit !== "unlimited" && activeSystems.length >= plan.systemsLimit;
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-16">
@@ -284,14 +285,17 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           <div className="rounded-xl border border-navy-100 bg-surface p-5">
             <div className="flex items-start justify-between gap-2">
               <p className="text-xs font-medium text-navy-500">Current Plan</p>
-              {systemsNearLimit && (
+              {!isSuperadmin && systemsNearLimit && (
                 <Link href="/pricing" className="text-xs font-medium text-accent hover:text-accent-600">
                   Upgrade available
                 </Link>
               )}
             </div>
-            <p className="mt-1 text-lg font-semibold text-navy-900">{plan?.name ?? "—"}</p>
-            {plan && (
+            <p className="mt-1 text-lg font-semibold text-navy-900">
+              {plan.name}
+              {isSuperadmin && <span className="ml-2 text-xs font-semibold text-accent">Unlimited</span>}
+            </p>
+            {!isSuperadmin && (
               <p className="mt-1 text-xs text-navy-500">
                 {activeSystems.length}/{plan.systemsLimit === "unlimited" ? "∞" : plan.systemsLimit} systems quota used
               </p>

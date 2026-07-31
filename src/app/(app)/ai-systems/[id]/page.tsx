@@ -5,6 +5,7 @@ import { getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths, type AiSystemDoc, type AssessmentDoc, type OrganizationDoc } from "@/lib/firestore/schema";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { planHasExpertReviewAccess } from "@/config/site";
+import { getEffectivePlanId } from "@/lib/billing/effective-plan";
 import { ArchiveButton } from "@/components/ai-systems/archive-button";
 import { RequestExpertReview } from "@/components/risk-assessment/request-expert-review";
 
@@ -92,7 +93,8 @@ export default async function AiSystemDetailPage({ params }: DetailPageProps) {
 
   const orgSnap = await db.doc(firestorePaths.organization(orgId)).get();
   const organization = orgSnap.data() as OrganizationDoc | undefined;
-  const canRequestExpertReview = !!organization && planHasExpertReviewAccess(organization.subscription.planId);
+  const canRequestExpertReview =
+    !!organization && planHasExpertReviewAccess(getEffectivePlanId(user.uid, organization.subscription.planId));
 
   let assessment: (AssessmentDoc & { id: string }) | null = null;
   if (system.assessmentStatus === "assessed") {
