@@ -1,7 +1,8 @@
 import "server-only";
 import type { OrganizationDoc } from "@/lib/firestore/schema";
 import { getCurrentMonthKey } from "@/lib/usage/monthly-quota";
-import { getEffectivePlan, isUnlimitedUser } from "@/lib/billing/effective-plan";
+import { getEffectivePlan, getEffectivePlanId, isUnlimitedUser } from "@/lib/billing/effective-plan";
+import { planHasExpertReviewAccess } from "@/config/site";
 
 export type MonthlyQuotaType = "assessments" | "documents" | "article50Texts";
 
@@ -64,4 +65,48 @@ export function checkMonthlyQuota(
   }
 
   return { allowed: true, monthIsStale, currentMonthKey };
+}
+
+export interface SimpleGateResult {
+  allowed: boolean;
+  error?: string;
+}
+
+/** AI system count cap — checked before registering a new system. Not a monthly counter, so it's separate from checkMonthlyQuota. */
+export function checkSystemsLimit(organization: OrganizationDoc, uid?: string | null): SimpleGateResult {
+  const plan = getEffectivePlan(uid, organization.subscription.planId);
+  const limit = plan.systemsLimit;
+  if (limit !== "unlimited" && organization.usage.registeredSystemsCount >= limit) {
+    return {
+      allowed: false,
+      error: `Your ${plan.name} plan supports up to ${limit} AI system${limit === 1 ? "" : "s"}. Upgrade your plan to add more.`,
+    };
+  }
+  return { allowed: true };
+}
+
+/** AI literacy seat cap. seatsUsed is a live count() over trainingRecords (see P10) — not a stored usage counter — so it's passed in rather than read off `organization.usage`. */
+export function checkAiLiteracySeatLimit(
+  organization: OrganizationDoc,
+  seatsUsed: number,
+  uid?: string | null
+): SimpleGateResult {
+  const plan = getEffectivePlan(uid, organization.subscription.planId);
+  const seatLimit = plan.aiLiteracySeats;
+  if (seatLimit !== "unlimited" && seatsUsed >= seatLimit) {
+    return {
+      allowed: false,
+      error: `Your ${plan.name} plan supports AI literacy training for up to ${seatLimit} employees. Upgrade your plan to add more.`,
+    };
+  }
+  return { allowed: true };
+}
+
+/** Expert-review plan-tier gate (Growth/Scale only) — a tier check, not a numeric quota. */
+export function checkExpertReviewAccess(organization: OrganizationDoc, uid?: string | null): SimpleGateResult {
+  const planId = getEffectivePlanId(uid, organization.subscription.planId);
+  if (!planHasExpertReviewAccess(planId)) {
+    return { allowed: false, error: "Upgrade to Growth for expert review" };
+  }
+  return { allowed: true };
 }

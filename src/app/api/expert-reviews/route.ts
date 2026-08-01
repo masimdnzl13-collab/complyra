@@ -11,9 +11,7 @@ import {
   type OrganizationDoc,
   type PreferredTurnaround,
 } from "@/lib/firestore/schema";
-import { planHasExpertReviewAccess } from "@/config/site";
-import { checkPastDue } from "@/lib/billing/quota";
-import { getEffectivePlanId } from "@/lib/billing/effective-plan";
+import { checkExpertReviewAccess, checkPastDue } from "@/lib/billing/quota";
 import { sendNewCaseNotificationEmail } from "@/lib/email/send-consultant-invite-email";
 
 const TURNAROUNDS: PreferredTurnaround[] = ["24h", "2d", "1w"];
@@ -70,8 +68,9 @@ export async function POST(request: NextRequest) {
   if (!assessmentSnap.exists) return NextResponse.json({ error: "Assessment not found" }, { status: 404 });
   const assessment = assessmentSnap.data() as AssessmentDoc;
 
-  if (!planHasExpertReviewAccess(getEffectivePlanId(user.uid, organization.subscription.planId))) {
-    return NextResponse.json({ error: "Upgrade to Growth for expert review" }, { status: 403 });
+  const expertAccess = checkExpertReviewAccess(organization, user.uid);
+  if (!expertAccess.allowed) {
+    return NextResponse.json({ error: expertAccess.error }, { status: 403 });
   }
   const pastDue = checkPastDue(organization, user.uid);
   if (pastDue) return NextResponse.json({ error: pastDue }, { status: 403 });

@@ -1,6 +1,6 @@
 import "server-only";
 import { pricingPlans, type PlanId, type PricingPlan } from "@/config/site";
-import { isSuperAdminUid } from "@/lib/auth/superadmin";
+import { isSuperAdminUid } from "@/lib/auth/superadmin-uid";
 
 /**
  * Single choke point for "superadmins bypass billing" (SUPERADMIN_UIDS, see

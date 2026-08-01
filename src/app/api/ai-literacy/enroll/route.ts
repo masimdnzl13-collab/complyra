@@ -3,8 +3,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { firestorePaths, type EmployeeRole, type OrganizationDoc, type TrainingRecordDoc } from "@/lib/firestore/schema";
-import { checkPastDue } from "@/lib/billing/quota";
-import { getEffectivePlan } from "@/lib/billing/effective-plan";
+import { checkAiLiteracySeatLimit, checkPastDue } from "@/lib/billing/quota";
 
 const ROLES = new Set<EmployeeRole>(["technical", "hr", "business", "executive", "general", "other"]);
 
@@ -54,18 +53,10 @@ export async function POST(request: NextRequest) {
   const pastDue = checkPastDue(organization, user.uid);
   if (pastDue) return NextResponse.json({ error: pastDue }, { status: 403 });
 
-  const plan = getEffectivePlan(user.uid, organization.subscription.planId);
-  const seatLimit = plan.aiLiteracySeats;
-  if (seatLimit !== "unlimited") {
-    const countSnap = await db.collection(firestorePaths.trainingRecords(orgId)).count().get();
-    if (countSnap.data().count >= seatLimit) {
-      return NextResponse.json(
-        {
-          error: `Your ${plan.name} plan supports AI literacy training for up to ${seatLimit} employees. Upgrade your plan to add more.`,
-        },
-        { status: 403 }
-      );
-    }
+  const countSnap = await db.collection(firestorePaths.trainingRecords(orgId)).count().get();
+  const seatsCheck = checkAiLiteracySeatLimit(organization, countSnap.data().count, user.uid);
+  if (!seatsCheck.allowed) {
+    return NextResponse.json({ error: seatsCheck.error }, { status: 403 });
   }
 
   const now = FieldValue.serverTimestamp();

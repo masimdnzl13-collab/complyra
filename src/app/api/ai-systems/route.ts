@@ -3,8 +3,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { firestorePaths, type OrganizationDoc } from "@/lib/firestore/schema";
-import { checkPastDue } from "@/lib/billing/quota";
-import { getEffectivePlan } from "@/lib/billing/effective-plan";
+import { checkPastDue, checkSystemsLimit } from "@/lib/billing/quota";
 import { isValidAiSystemInput } from "@/lib/ai-systems/validate";
 
 export async function POST(request: NextRequest) {
@@ -35,15 +34,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: pastDue }, { status: 403 });
   }
 
-  const plan = getEffectivePlan(user.uid, organization.subscription.planId);
-  const limit = plan.systemsLimit;
-  if (limit !== "unlimited" && organization.usage.registeredSystemsCount >= limit) {
-    return NextResponse.json(
-      {
-        error: `Your ${plan.name} plan supports up to ${limit} AI system${limit === 1 ? "" : "s"}. Upgrade your plan to add more.`,
-      },
-      { status: 403 }
-    );
+  const systemsCheck = checkSystemsLimit(organization, user.uid);
+  if (!systemsCheck.allowed) {
+    return NextResponse.json({ error: systemsCheck.error }, { status: 403 });
   }
 
   const systemRef = db.collection(firestorePaths.aiSystems(orgId)).doc();
