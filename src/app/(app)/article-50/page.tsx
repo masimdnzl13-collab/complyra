@@ -7,12 +7,16 @@ import { WatermarkChecklistDataSchema } from "@/lib/article50/types";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { regulationDeadlines } from "@/config/site";
 import { DeadlineCountdown } from "@/components/article50/deadline-countdown";
+import { DataUnavailable } from "@/components/app/data-unavailable";
 
 export const metadata = constructMetadata({
   title: "Article 50 Compliance",
   path: "/article-50",
   noIndex: true,
 });
+
+export const runtime = "nodejs";
+export const maxDuration = 15;
 
 export default async function Article50Page() {
   const user = await getCurrentUser();
@@ -22,13 +26,24 @@ export default async function Article50Page() {
   const orgId = user.userDoc.organizationId;
   const db = getAdminFirestore();
 
-  const [systemsSnap, artifactsSnap] = await Promise.all([
-    db.collection(firestorePaths.aiSystems(orgId)).where("interactsWithPeople", "==", true).get(),
-    db.collection(firestorePaths.article50Artifacts(orgId)).where("isCurrent", "==", true).get(),
-  ]);
-
-  const chatbotSystems = systemsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as AiSystemDoc) }));
-  const artifacts = artifactsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as Article50Artifact) }));
+  let chatbotSystems: (AiSystemDoc & { id: string })[];
+  let artifacts: (Article50Artifact & { id: string })[];
+  try {
+    const [systemsSnap, artifactsSnap] = await Promise.all([
+      db.collection(firestorePaths.aiSystems(orgId)).where("interactsWithPeople", "==", true).get(),
+      db.collection(firestorePaths.article50Artifacts(orgId)).where("isCurrent", "==", true).get(),
+    ]);
+    chatbotSystems = systemsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as AiSystemDoc) }));
+    artifacts = artifactsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as Article50Artifact) }));
+  } catch (error) {
+    console.error("[article-50] Firestore query failed", { orgId, error });
+    return (
+      <div className="mx-auto max-w-4xl px-6 py-16">
+        <h1 className="text-3xl font-semibold tracking-tight text-navy-900">Article 50 Readiness</h1>
+        <DataUnavailable />
+      </div>
+    );
+  }
 
   const chatbotArtifactSystemIds = new Set(
     artifacts.filter((a) => a.area === "chatbot_disclosure").map((a) => a.aiSystemId)

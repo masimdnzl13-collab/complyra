@@ -11,6 +11,7 @@ import {
 import { constructMetadata } from "@/lib/construct-metadata";
 import { ProposalActions, RatingForm } from "@/components/risk-assessment/expert-review-actions";
 import { EmptyState } from "@/components/app/empty-state";
+import { DataUnavailable } from "@/components/app/data-unavailable";
 import { MessageCircle } from "lucide-react";
 
 export const metadata = constructMetadata({
@@ -18,6 +19,9 @@ export const metadata = constructMetadata({
   path: "/expert-reviews",
   noIndex: true,
 });
+
+export const runtime = "nodejs";
+export const maxDuration = 15;
 
 const STATUS_LABELS: Record<ExpertReviewStatus, string> = {
   pending_assignment: "Waiting to be matched with a consultant",
@@ -29,15 +33,21 @@ const STATUS_LABELS: Record<ExpertReviewStatus, string> = {
   completed: "Completed",
 };
 
+/** Per-review enrichment (system name, consultant details) is non-critical — a failed lookup for one review degrades to placeholder text rather than failing the whole list. */
 async function loadDetails(review: ExpertReviewDoc & { id: string }, orgId: string) {
   const db = getAdminFirestore();
-  const [systemSnap, consultantSnap] = await Promise.all([
-    db.doc(firestorePaths.aiSystem(orgId, review.aiSystemId)).get(),
-    review.consultantId ? db.doc(firestorePaths.consultant(review.consultantId)).get() : Promise.resolve(null),
-  ]);
-  const system = systemSnap.data() as AiSystemDoc | undefined;
-  const consultant = consultantSnap?.data() as ConsultantDoc | undefined;
-  return { ...review, systemName: system?.name ?? "Unknown system", consultant: consultant ?? null };
+  try {
+    const [systemSnap, consultantSnap] = await Promise.all([
+      db.doc(firestorePaths.aiSystem(orgId, review.aiSystemId)).get(),
+      review.consultantId ? db.doc(firestorePaths.consultant(review.consultantId)).get() : Promise.resolve(null),
+    ]);
+    const system = systemSnap.data() as AiSystemDoc | undefined;
+    const consultant = consultantSnap?.data() as ConsultantDoc | undefined;
+    return { ...review, systemName: system?.name ?? "Unknown system", consultant: consultant ?? null };
+  } catch (error) {
+    console.error("[expert-reviews] review enrichment failed, degrading gracefully", { orgId, reviewId: review.id, error });
+    return { ...review, systemName: "Unknown system", consultant: null };
+  }
 }
 
 export default async function ExpertReviewsPage() {
@@ -47,12 +57,21 @@ export default async function ExpertReviewsPage() {
 
   const orgId = user.userDoc.organizationId;
   const db = getAdminFirestore();
-  const snap = await db.collection(firestorePaths.expertReviews()).where("organizationId", "==", orgId).get();
 
-  const reviews = await Promise.all(
-    snap.docs.map((d) => loadDetails({ id: d.id, ...(d.data() as ExpertReviewDoc) }, orgId))
-  );
-  reviews.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+  let reviews: Awaited<ReturnType<typeof loadDetails>>[];
+  try {
+    const snap = await db.collection(firestorePaths.expertReviews()).where("organizationId", "==", orgId).get();
+    reviews = await Promise.all(snap.docs.map((d) => loadDetails({ id: d.id, ...(d.data() as ExpertReviewDoc) }, orgId)));
+    reviews.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+  } catch (error) {
+    console.error("[expert-reviews] Firestore query failed", { orgId, error });
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-16">
+        <h1 className="text-3xl font-semibold tracking-tight text-navy-900">Expert Reviews</h1>
+        <DataUnavailable />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">

@@ -6,6 +6,7 @@ import { firestorePaths, type ComplianceDocumentDoc } from "@/lib/firestore/sche
 import { constructMetadata } from "@/lib/construct-metadata";
 import { DOCUMENT_TEMPLATES } from "@/lib/documents/templates";
 import { EmptyState } from "@/components/app/empty-state";
+import { DataUnavailable } from "@/components/app/data-unavailable";
 import { FileText } from "lucide-react";
 
 export const metadata = constructMetadata({
@@ -13,6 +14,9 @@ export const metadata = constructMetadata({
   path: "/documents",
   noIndex: true,
 });
+
+export const runtime = "nodejs";
+export const maxDuration = 15;
 
 const STATUS_STYLES: Record<ComplianceDocumentDoc["status"], string> = {
   draft: "bg-navy-100 text-navy-500",
@@ -30,12 +34,24 @@ export default async function DocumentsPage() {
   if (!user.userDoc) redirect("/onboarding");
 
   const orgId = user.userDoc.organizationId;
-  const snapshot = await getAdminFirestore()
-    .collection(firestorePaths.documents(orgId))
-    .where("isCurrent", "==", true)
-    .orderBy("updatedAt", "desc")
-    .get();
-  const documents = snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as ComplianceDocumentDoc) }));
+
+  let documents: (ComplianceDocumentDoc & { id: string })[];
+  try {
+    const snapshot = await getAdminFirestore()
+      .collection(firestorePaths.documents(orgId))
+      .where("isCurrent", "==", true)
+      .orderBy("updatedAt", "desc")
+      .get();
+    documents = snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as ComplianceDocumentDoc) }));
+  } catch (error) {
+    console.error("[documents] Firestore query failed", { orgId, error });
+    return (
+      <div className="mx-auto max-w-4xl px-6 py-16">
+        <h1 className="text-3xl font-semibold tracking-tight text-navy-900">Documents</h1>
+        <DataUnavailable />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-16">

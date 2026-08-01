@@ -20,6 +20,14 @@ export function AppNav({ items }: { items: NavItem[] }) {
           <Link
             key={item.href}
             href={item.href}
+            // Every one of these is a dynamic, per-user page (no static shell to
+            // prefetch), and this nav renders in the header on every authenticated
+            // screen. Default Link prefetch fires a full background RSC render for
+            // every item the instant it's in the viewport — i.e. every page load
+            // silently triggers one full render per nav item, all concurrently.
+            // That's a needless multiplier on backend load for destinations most
+            // visits never reach; disable it and let navigation fetch on click.
+            prefetch={false}
             className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
               active ? "bg-navy-100 text-navy-900" : "text-navy-500 hover:bg-navy-50 hover:text-navy-900"
             }`}

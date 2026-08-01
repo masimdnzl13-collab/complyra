@@ -44,11 +44,12 @@ export function AppShell({
       <header className="border-b border-navy-100 bg-surface">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-8">
-            <Logo href="/dashboard" />
+            <Logo href="/dashboard" prefetch={false} />
             <AppNav items={navItems} />
             {isPlatformAdmin && (
               <Link
                 href="/admin"
+                prefetch={false}
                 className="border-l border-navy-100 pl-6 text-sm font-medium text-navy-500 hover:text-navy-900"
               >
                 Admin

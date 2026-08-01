@@ -5,6 +5,7 @@ import { getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths, type AiSystemDoc } from "@/lib/firestore/schema";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { EmptyState } from "@/components/app/empty-state";
+import { DataUnavailable } from "@/components/app/data-unavailable";
 import { Zap } from "lucide-react";
 
 export const metadata = constructMetadata({
@@ -12,6 +13,13 @@ export const metadata = constructMetadata({
   path: "/ai-systems",
   noIndex: true,
 });
+
+// Admin SDK requires Node.js (not Edge) — explicit here so it can't silently
+// regress. maxDuration is precautionary headroom over cold-start + one
+// Firestore read, not a response to an observed timeout (see the try/catch
+// below and its [ai-systems] log tag for the actual failure path).
+export const runtime = "nodejs";
+export const maxDuration = 15;
 
 const ROLE_LABELS: Record<AiSystemDoc["role"], string> = {
   provider: "Provider",
@@ -52,12 +60,24 @@ export default async function AiSystemsPage({ searchParams }: AiSystemsPageProps
   if (!user.userDoc) redirect("/onboarding");
 
   const orgId = user.userDoc.organizationId;
-  const snapshot = await getAdminFirestore()
-    .collection(firestorePaths.aiSystems(orgId))
-    .orderBy("createdAt", "desc")
-    .get();
 
-  const allSystems = snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as AiSystemDoc) }));
+  let allSystems: (AiSystemDoc & { id: string })[];
+  try {
+    const snapshot = await getAdminFirestore()
+      .collection(firestorePaths.aiSystems(orgId))
+      .orderBy("createdAt", "desc")
+      .get();
+    allSystems = snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as AiSystemDoc) }));
+  } catch (error) {
+    console.error("[ai-systems] Firestore query failed", { orgId, error });
+    return (
+      <div className="mx-auto max-w-4xl px-6 py-16">
+        <h1 className="text-3xl font-semibold tracking-tight text-navy-900">AI Systems</h1>
+        <DataUnavailable />
+      </div>
+    );
+  }
+
   const showArchived = searchParams.view === "archived";
   const activeSystems = allSystems.filter((s) => s.status !== "retired");
   const archivedSystems = allSystems.filter((s) => s.status === "retired");

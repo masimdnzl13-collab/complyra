@@ -5,8 +5,12 @@ import { getAdminFirestore } from "@/lib/firebase/admin";
 import { firestorePaths, type TrainingRecordDoc } from "@/lib/firestore/schema";
 import { constructMetadata } from "@/lib/construct-metadata";
 import { ROLE_LABELS, getModulesForRole } from "@/lib/ai-literacy/modules";
+import { DataUnavailable } from "@/components/app/data-unavailable";
 
 export const metadata = constructMetadata({ title: "AI Literacy", path: "/ai-literacy", noIndex: true });
+
+export const runtime = "nodejs";
+export const maxDuration = 15;
 
 export default async function AiLiteracyPage() {
   const user = await getCurrentUser();
@@ -15,14 +19,32 @@ export default async function AiLiteracyPage() {
 
   const orgId = user.userDoc.organizationId;
   const db = getAdminFirestore();
-  const recordSnap = await db.doc(firestorePaths.trainingRecord(orgId, user.uid)).get();
-  const record = recordSnap.exists ? (recordSnap.data() as TrainingRecordDoc) : null;
 
+  let record: TrainingRecordDoc | null;
+  try {
+    const recordSnap = await db.doc(firestorePaths.trainingRecord(orgId, user.uid)).get();
+    record = recordSnap.exists ? (recordSnap.data() as TrainingRecordDoc) : null;
+  } catch (error) {
+    console.error("[ai-literacy] Firestore query failed", { orgId, error });
+    return (
+      <div className="mx-auto max-w-2xl px-6 py-16">
+        <h1 className="text-3xl font-semibold tracking-tight text-navy-900">AI Literacy</h1>
+        <DataUnavailable />
+      </div>
+    );
+  }
+
+  // Org-wide completion stat is a secondary add-on for owners — its failure
+  // shouldn't take down the page's primary purpose (the user's own training).
   let orgStat: { completed: number; total: number } | null = null;
   if (user.userDoc.role === "owner") {
-    const allSnap = await db.collection(firestorePaths.trainingRecords(orgId)).get();
-    const all = allSnap.docs.map((d) => d.data() as TrainingRecordDoc);
-    orgStat = { completed: all.filter((r) => r.completedAt).length, total: all.length };
+    try {
+      const allSnap = await db.collection(firestorePaths.trainingRecords(orgId)).get();
+      const all = allSnap.docs.map((d) => d.data() as TrainingRecordDoc);
+      orgStat = { completed: all.filter((r) => r.completedAt).length, total: all.length };
+    } catch (error) {
+      console.error("[ai-literacy] org stat query failed, degrading gracefully", { orgId, error });
+    }
   }
 
   return (
