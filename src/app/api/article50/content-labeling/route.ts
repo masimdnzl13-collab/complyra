@@ -7,6 +7,7 @@ import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { checkArticle50TextQuota } from "@/lib/article50/quota";
 import { prepareArticle50ArtifactWrite } from "@/lib/article50/persist-artifact";
 import { generateContentLabelText } from "@/lib/article50/claude-client";
+import { getMachineMarkingGuidance } from "@/lib/article50/content";
 import type { ContentType, PublishPlatform } from "@/lib/article50/types";
 
 const CONTENT_TYPES = new Set<ContentType>(["text", "image", "audio", "video"]);
@@ -33,6 +34,10 @@ const IMPLEMENTATION_CHECKLIST = [
   { id: "marks_before_publish", label: "Does the system label every AI-generated output before it's published?" },
   { id: "label_in_description_too", label: "Is the label only in the title/caption, or also in the description?" },
   { id: "translated_to_all_languages", label: "Has the label been translated into every language you publish in?" },
+  {
+    id: "machine_marking_applied",
+    label: "Has machine-readable marking (watermark/metadata) been applied to the file itself, not just the visible label?",
+  },
 ];
 
 export async function POST(request: NextRequest) {
@@ -69,6 +74,7 @@ export async function POST(request: NextRequest) {
     contentTypes: body.contentTypes,
     companyName: organization.companyName,
   });
+  const machineMarkingGuidance = getMachineMarkingGuidance(body.contentTypes, body.platform);
 
   const { batch, artifactId } = await prepareArticle50ArtifactWrite({
     orgId,
@@ -80,6 +86,7 @@ export async function POST(request: NextRequest) {
       platform: body.platform,
       labelText,
       checklist: IMPLEMENTATION_CHECKLIST.map((item) => ({ ...item, checked: false })),
+      machineMarkingGuidance,
     },
     actorUid: user.uid,
   });

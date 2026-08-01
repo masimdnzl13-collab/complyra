@@ -24,18 +24,49 @@ export const ChatbotDisclosureDataSchema = z.object({
 export type ContentType = "text" | "image" | "audio" | "video";
 export type PublishPlatform = "website" | "social_media" | "news_platform" | "other";
 
+/** How mature/reliable machine-readable marking is for a given content type — surfaced in the UI so text's honest limitations aren't presented with the same confidence as image/video. */
+export type MachineMarkingMaturity = "available" | "limited" | "still_maturing";
+
+export interface MachineMarkingMethod {
+  method: string;
+  howTo: string;
+}
+
+export interface MachineMarkingGuidance {
+  contentType: ContentType;
+  maturity: MachineMarkingMaturity;
+  maturityNote: string;
+  methods: MachineMarkingMethod[];
+  /** Where/how to apply the marking for the artifact's selected publish platform. */
+  placementNote: string;
+}
+
 export interface ContentLabelingData {
   contentTypes: ContentType[];
   platform: PublishPlatform;
   labelText: string;
   checklist: { id: string; label: string; checked: boolean }[];
+  /**
+   * Optional (not required) so artifacts generated before this field existed
+   * still parse — see ContentLabelingView's fallback when this is absent.
+   */
+  machineMarkingGuidance?: MachineMarkingGuidance[];
 }
+
+const MachineMarkingGuidanceSchema = z.object({
+  contentType: z.enum(["text", "image", "audio", "video"]),
+  maturity: z.enum(["available", "limited", "still_maturing"]),
+  maturityNote: z.string(),
+  methods: z.array(z.object({ method: z.string(), howTo: z.string() })),
+  placementNote: z.string(),
+}) satisfies z.ZodType<MachineMarkingGuidance>;
 
 export const ContentLabelingDataSchema = z.object({
   contentTypes: z.array(z.enum(["text", "image", "audio", "video"])),
   platform: z.enum(["website", "social_media", "news_platform", "other"]),
   labelText: z.string(),
   checklist: z.array(z.object({ id: z.string(), label: z.string(), checked: z.boolean() })),
+  machineMarkingGuidance: z.array(MachineMarkingGuidanceSchema).optional(),
 }) satisfies z.ZodType<ContentLabelingData>;
 
 export type GenerativeModelSource = "openai" | "meta" | "own_model" | "other";

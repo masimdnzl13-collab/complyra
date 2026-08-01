@@ -1,7 +1,14 @@
 import "server-only";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import type { Article50Artifact } from "@/lib/firestore/schema";
-import { LANGUAGE_LABELS, MODEL_SOURCE_LABELS, WATERMARK_STANDARD_NOTE } from "./content";
+import {
+  ARTICLE_50_2_STATE_OF_THE_ART_NOTE,
+  LABEL_AND_MARKING_LINK_NOTE,
+  LANGUAGE_LABELS,
+  MACHINE_MARKING_NOT_DETECTION_NOTE,
+  MODEL_SOURCE_LABELS,
+  WATERMARK_STANDARD_NOTE,
+} from "./content";
 import {
   ChatbotDisclosureDataSchema,
   ContentLabelingDataSchema,
@@ -90,8 +97,23 @@ export async function generateArticle50Pdf(artifact: Article50Artifact): Promise
     }
   } else if (artifact.area === "content_labeling") {
     const data = ContentLabelingDataSchema.parse(artifact.data);
-    cursor = drawHeading(doc, cursor, "Label text", bold, 12);
+    cursor = drawHeading(doc, cursor, "Human-perceptible label", bold, 12);
     cursor = drawParagraph(doc, cursor, data.labelText, font, 11);
+
+    if (data.machineMarkingGuidance && data.machineMarkingGuidance.length > 0) {
+      cursor = drawHeading(doc, cursor, "Machine-readable marking", bold, 12);
+      cursor = drawParagraph(doc, cursor, LABEL_AND_MARKING_LINK_NOTE, font, 9.5);
+      for (const g of data.machineMarkingGuidance) {
+        cursor = drawParagraph(doc, cursor, `${g.contentType.toUpperCase()} (${g.maturity.replace("_", " ")}) — ${g.maturityNote}`, bold, 10.5);
+        for (const m of g.methods) {
+          cursor = drawParagraph(doc, cursor, `- ${m.method}: ${m.howTo}`, font, 10);
+        }
+        cursor = drawParagraph(doc, cursor, g.placementNote, font, 9.5);
+      }
+      cursor = drawParagraph(doc, cursor, ARTICLE_50_2_STATE_OF_THE_ART_NOTE, font, 9);
+      cursor = drawParagraph(doc, cursor, MACHINE_MARKING_NOT_DETECTION_NOTE, font, 9);
+    }
+
     cursor = drawHeading(doc, cursor, "Implementation checklist", bold, 12);
     for (const item of data.checklist) {
       cursor = drawParagraph(doc, cursor, `${item.checked ? "[x]" : "[ ]"} ${item.label}`, font, 10.5);

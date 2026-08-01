@@ -2,6 +2,7 @@ import type {
   ContentType,
   GenerativeModelSource,
   Language,
+  MachineMarkingGuidance,
   NoticeFormat,
   PublishPlatform,
 } from "./types";
@@ -88,3 +89,137 @@ export const PUBLIC_INTEREST_EXAMPLE_TEXT =
 export const ARTISTIC_EXEMPTION_NOTE =
   "For evidently artistic, creative, satirical, or fictional content, a lighter-touch disclosure is accepted — " +
   "e.g. \"AI-generated, satirical\" — as long as it doesn't obscure that the work is synthetic.";
+
+/**
+ * The technically demanding half of Article 50(2) — machine-readable,
+ * detectable marking of the underlying file — as opposed to the
+ * human-perceptible label generated per-request by Claude. This is curated,
+ * reviewed reference content (specific standard/field names like C2PA and
+ * IPTC "Digital Source Type") rather than something an LLM should freehand
+ * per request, so it's a static lookup by content type, not a generated
+ * text. Keyed by ContentType; PLATFORM placement guidance is separate below
+ * since it varies independently of content type.
+ */
+export const MACHINE_MARKING_GUIDANCE: Record<ContentType, Omit<MachineMarkingGuidance, "placementNote">> = {
+  image: {
+    contentType: "image",
+    maturity: "available",
+    maturityNote:
+      "Mature, deployed options exist — image is the strongest-supported content type for machine-readable marking today.",
+    methods: [
+      {
+        method: "C2PA / Content Credentials manifest",
+        howTo:
+          "Embed a signed C2PA manifest recording this asset as AI-generated, with the generating tool listed as an assertion. Many generation tools (e.g. Adobe Firefly, OpenAI's image models) emit this natively — verify your export/resize pipeline doesn't strip it.",
+      },
+      {
+        method: "IPTC / XMP metadata",
+        howTo:
+          "Set the IPTC \"Digital Source Type\" field to algorithmicMedia (or compositeWithTrainedAlgorithmicMedia for AI-edited-but-not-fully-generated images) in the embedded XMP block — this is the field most photo/DAM/CMS tools already read.",
+      },
+      {
+        method: "Invisible, robust watermark",
+        howTo:
+          "Where your generation tool offers one (e.g. Google SynthID or an equivalent from your vendor), apply an imperceptible watermark encoded into the pixel data so the mark survives ordinary recompression and resizing.",
+      },
+    ],
+  },
+  video: {
+    contentType: "video",
+    maturity: "available",
+    maturityNote: "C2PA extends to video, though tooling support is less universal than for still images.",
+    methods: [
+      {
+        method: "C2PA / Content Credentials manifest",
+        howTo:
+          "Embed a signed C2PA manifest at the container level, and re-embed it after any transcoding step in your pipeline — transcoding is the most common place this gets silently stripped.",
+      },
+      {
+        method: "Frame or container-level watermark",
+        howTo:
+          "Apply a robust watermark across frames (via your generation vendor's tooling where available) so it survives standard compression (H.264/H.265) and re-encoding for different platforms.",
+      },
+      {
+        method: "XMP metadata",
+        howTo:
+          "Set the same IPTC \"Digital Source Type\" field used for images in the video file's XMP block, for tools that read video metadata the same way.",
+      },
+    ],
+  },
+  audio: {
+    contentType: "audio",
+    maturity: "limited",
+    maturityNote:
+      "Acoustic watermarking exists and is improving, but is less standardized than image/video marking — treat it as current best practice, not a guaranteed-robust mark.",
+    methods: [
+      {
+        method: "Acoustic watermark",
+        howTo:
+          "Embed an inaudible watermark in the audio signal using your text-to-speech/voice-generation vendor's watermarking feature, if it offers one — this should survive normal compression (MP3/AAC) reasonably well.",
+      },
+      {
+        method: "Accompanying metadata / manifest",
+        howTo:
+          "Attach a C2PA manifest or ID3/XMP metadata block declaring the audio as AI-generated alongside the file, as a fallback for players/platforms that strip watermarks or don't preserve them through re-encoding.",
+      },
+    ],
+  },
+  text: {
+    contentType: "text",
+    maturity: "still_maturing",
+    maturityNote:
+      "Reliable, standardized machine-readable watermarking for plain text does not yet exist at the maturity level of image/audio/video marking — there is no widely deployed mark that survives copy-paste or reformatting. Treat the options below as best-effort until the technology (and/or AI Office guidance) matures further.",
+    methods: [
+      {
+        method: "Embedded metadata / provenance header",
+        howTo:
+          "Where your publishing format supports it (a CMS custom field, document properties, or a C2PA-style manifest for structured formats), record the content as AI-generated in the metadata.",
+      },
+      {
+        method: "Signed provenance / publishing-platform meta-tag",
+        howTo:
+          "If your CMS or platform supports a machine-readable content-origin field or meta tag, set it to declare AI generation — currently the closest practical equivalent to a machine-readable mark for plain text.",
+      },
+    ],
+  },
+};
+
+/** How/where the marking should be placed, independent of content type — this is what changes based on the publish-platform selection. */
+export const MACHINE_MARKING_PLATFORM_PLACEMENT: Record<PublishPlatform, string> = {
+  website:
+    "Embed the marking in the file itself AND add a matching page-level signal (e.g. a meta tag or structured-data field) next to the human-visible label — that way both a file re-user and a page scraper see the AI-origin signal.",
+  social_media:
+    "Apply the platform's own AI-content label at upload, where the platform offers one, in addition to embedding your own watermark/metadata BEFORE uploading. Most platforms strip custom XMP/IPTC metadata on upload, so the platform's native flag is often the only machine-readable signal that survives — don't rely on file-embedded metadata alone here.",
+  news_platform:
+    "Preserve file-embedded marking through your publishing pipeline (CMS ingestion commonly strips metadata on resize/re-encode — verify it doesn't), and mirror the AI-origin declaration in the article's structured data or byline metadata.",
+  other:
+    "Embed the strongest marking your tooling supports directly in the file, and mirror it in any metadata field your distribution channel is known to preserve.",
+};
+
+/** Combines the content-type guidance with the selected platform's placement note. */
+export function getMachineMarkingGuidance(
+  contentTypes: ContentType[],
+  platform: PublishPlatform
+): MachineMarkingGuidance[] {
+  return contentTypes.map((contentType) => ({
+    ...MACHINE_MARKING_GUIDANCE[contentType],
+    placementNote: MACHINE_MARKING_PLATFORM_PLACEMENT[platform],
+  }));
+}
+
+export const ARTICLE_50_2_STATE_OF_THE_ART_NOTE =
+  "Article 50(2) requires marking that is effective, interoperable, robust, and reliable \"to the extent " +
+  "technically feasible\" — the bar is state of the art, not a fixed checklist, and it will move as the " +
+  "technology matures. The AI Office is expected to issue further implementation guidance and codes of " +
+  "practice on machine-readable marking; treat the methods above as current best practice, to be revisited " +
+  "as that guidance develops.";
+
+export const MACHINE_MARKING_NOT_DETECTION_NOTE =
+  "This is implementation guidance, not a detectability guarantee — applying these methods does not certify " +
+  "that any given file will be reliably detected as AI-generated by every downstream tool or platform. As " +
+  "with all Vermoncy output, this is not legal advice.";
+
+export const LABEL_AND_MARKING_LINK_NOTE =
+  "The label above is the human-perceptible half of Article 50(2); machine-readable marking is the other " +
+  "half — both are required together, not as alternatives. This works alongside your watermark checklist " +
+  "(the Article 50(2) marking obligation for your generative model/vendor), not instead of it.";
