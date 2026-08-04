@@ -5,6 +5,20 @@ const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_MAX_RETRIES = 2;
 
 /**
+ * Kill switch for all Claude API spend. Flip back to `false` to re-enable
+ * document generation, risk assessment, Article 50 drafting, regulatory-news
+ * summarization, and lead discovery. While `true`, no network call to
+ * Anthropic is ever made from any of those call sites.
+ */
+export const CLAUDE_API_DISABLED = true;
+
+export function assertClaudeApiEnabled(): void {
+  if (CLAUDE_API_DISABLED) {
+    throw new Error("Claude API calls are temporarily disabled (CLAUDE_API_DISABLED in src/lib/claude/safe-call.ts).");
+  }
+}
+
+/**
  * Wraps org-supplied free text (system descriptions, justifications, etc.)
  * before it's interpolated into a Claude prompt, so the system prompt can
  * tell the model to treat anything inside the tags as data, never as
@@ -43,6 +57,7 @@ export async function withTimeoutAndRetry<T>(
   call: () => Promise<T>,
   { timeoutMs = DEFAULT_TIMEOUT_MS, maxRetries = DEFAULT_MAX_RETRIES }: { timeoutMs?: number; maxRetries?: number } = {}
 ): Promise<T> {
+  assertClaudeApiEnabled();
   let lastError: unknown;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {

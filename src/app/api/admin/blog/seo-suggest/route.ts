@@ -4,6 +4,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { isSuperAdminUid } from "@/lib/auth/superadmin";
+import { assertClaudeApiEnabled } from "@/lib/claude/safe-call";
 
 const SeoSchema = z.object({
   primaryKeywordCount: z.number().describe("How many times the primary keyword (or a close natural variant) appears in the text"),
@@ -20,6 +21,12 @@ export async function POST(request: NextRequest) {
   const { content, primaryKeyword } = await request.json().catch(() => ({}));
   if (typeof content !== "string" || !content.trim() || typeof primaryKeyword !== "string" || !primaryKeyword.trim()) {
     return NextResponse.json({ error: "Provide both content and a primary keyword" }, { status: 400 });
+  }
+
+  try {
+    assertClaudeApiEnabled();
+  } catch {
+    return NextResponse.json({ error: "Claude API calls are temporarily disabled" }, { status: 503 });
   }
 
   const client = new Anthropic();

@@ -1,6 +1,7 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { getHunterAccountStatus } from "@/lib/leads/hunter";
+import { CLAUDE_API_DISABLED } from "@/lib/claude/safe-call";
 
 export interface ApiHealthStatus {
   name: string;
@@ -51,6 +52,9 @@ export async function checkApiHealth(): Promise<ApiHealthStatus[]> {
       return { name: "Hunter.io", ok: status.available > 0, detail: `${status.available} searches left this cycle` };
     })(),
     (async () => {
+      if (CLAUDE_API_DISABLED) {
+        return { name: "Claude API", ok: false, detail: "Disabled (CLAUDE_API_DISABLED)" };
+      }
       const hasKey = !!process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== "your-anthropic-api-key";
       if (!hasKey) return { name: "Claude API", ok: false, detail: "No API key configured" };
       try {
